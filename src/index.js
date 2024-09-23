@@ -9,11 +9,11 @@ dotenv.config();
 
 
 const app = express();
-const port = process.env.PORT || 3002;
+const port = process.env.PORT || 5082;
 
 
 const corsOptions = {
-    origin: 'http://localhost:5175', // Thay đổi thành địa chỉ frontend của bạn
+    origin: 'http://localhost:5081', // Thay đổi thành địa chỉ frontend của bạn
     credentials: true, // Cho phép gửi cookie
 };
 
