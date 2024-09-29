@@ -7,7 +7,6 @@ const orderSchema = new mongoose.Schema({
             amount: { type: Number, required: true},
             image: {type: String, required: true},
             price: {type: Number, required: true},
-            discount:{type: Number, required: true},
             product: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: 'Product',
@@ -30,6 +29,13 @@ const orderSchema = new mongoose.Schema({
     paidAt: {type: Date},
     isDelivered: {type: Boolean, default: false},
     delivereAt: {type: Date},
+
+    orderStatus: {
+        type: String,
+        default: 'Processing',
+        enum: ['Processing', 'Shipped', 'Delivered', 'Cancelled'],
+        required: true
+    }
 },
 {
     timestamps: true,

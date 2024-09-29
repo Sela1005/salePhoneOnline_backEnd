@@ -9,4 +9,6 @@ router.get('/get-order-details/:id',authUserMiddleware, OrderController.getDetai
 
 router.get('/get-all-order',authMiddleware, OrderController.getAllOrder)
 
+router.put('/update/:id',authMiddleware, OrderController.updateOrder)
+
 module.exports = router
