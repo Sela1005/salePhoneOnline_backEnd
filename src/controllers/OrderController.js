@@ -1,3 +1,5 @@
+const Order = require('../models/OrderProduct')
+const { calculateTotalRevenue } = require('../services/OrderService')
 const Orderservice = require('../services/OrderService')
 
 const createOrder = async (req, res) => {
@@ -65,9 +67,43 @@ const updateOrder = async (req, res) => {
         })
     }
 }
+  // Tổng doanh thu
+const totalRevenue = async (req, res) => {
+    try {
+      const totalRevenue = await Orderservice.calculateTotalRevenue(); // Gọi service để tính tổng doanh thu
+      res.json({ totalRevenue }); // Trả về kết quả cho client
+    } catch (error) {
+      res.status(500).json({ message: error.message }); // Bắt lỗi và trả về message lỗi
+    }
+  };
+
+  //doanh thu theo tháng
+const monthlyRevenue = async (req, res) => {
+    const { year } = req.params; // Nhận tham số year từ request
+    try {
+      const revenue = await Orderservice.calculateMonthlyRevenue(parseInt(year));
+      res.json(revenue);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  };
+  
+  // doanh thu theo năm
+  const yearlyRevenue = async (req, res) => {
+    try {
+      const revenue = await Orderservice.calculateYearlyRevenue();
+      res.json(revenue);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  };
+  
 module.exports = {
     createOrder,
     getDetailOrder,
     getAllOrder,
-    updateOrder
+    updateOrder,
+    totalRevenue,
+    yearlyRevenue,
+    monthlyRevenue
 }

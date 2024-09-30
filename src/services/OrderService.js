@@ -146,10 +146,79 @@ const updateStatusOrder = (id,data) => {
         }
     })
 }
+//tính tổng doanh thu
+const calculateTotalRevenue = async () => {
+    try {
+      const orders = await Order.aggregate([
+        { $match: { isPaid: true } }, // Chỉ lấy đơn hàng đã thanh toán
+        {
+          $group: {
+            _id: null, // Không nhóm theo trường nào (tính tổng cho toàn bộ)
+            totalRevenue: { $sum: "$totalPrice" } // Tính tổng trường totalPrice
+          }
+        }
+      ]);
+  
+      return orders[0]?.totalRevenue || 0; // Trả về tổng doanh thu, nếu không có, trả về 0
+    } catch (error) {
+      throw new Error("Error calculating total revenue"); // Ném lỗi nếu có
+    }
+  };
+
+  // Hàm xử lý tính doanh thu theo tháng
+const calculateMonthlyRevenue = async (year) => {
+    try {
+      const orders = await Order.aggregate([
+        { 
+          $match: { 
+            isPaid: true, 
+            createdAt: {
+              $gte: new Date(`${year}-01-01`),  // Tính từ đầu năm
+              $lt: new Date(`${year + 1}-01-01`) // Đến hết năm
+            }
+          }
+        },
+        {
+          $group: {
+            _id: { month: { $month: "$createdAt" } }, // Nhóm theo tháng
+            monthlyRevenue: { $sum: "$totalPrice" } // Tính tổng doanh thu trong mỗi tháng
+          }
+        },
+        { $sort: { "_id.month": 1 } } // Sắp xếp kết quả theo tháng
+      ]);
+  
+      return orders; // Trả về doanh thu từng tháng
+    } catch (error) {
+      throw new Error("Error calculating monthly revenue");
+    }
+  };
+  
+  // Hàm xử lý tính doanh thu theo năm
+  const calculateYearlyRevenue = async () => {
+    try {
+      const orders = await Order.aggregate([
+        { $match: { isPaid: true } }, // Chỉ lấy đơn hàng đã thanh toán
+        {
+          $group: {
+            _id: { year: { $year: "$createdAt" } }, // Nhóm theo năm
+            yearlyRevenue: { $sum: "$totalPrice" } // Tính tổng doanh thu trong mỗi năm
+          }
+        },
+        { $sort: { "_id.year": 1 } } // Sắp xếp kết quả theo năm
+      ]);
+  
+      return orders; // Trả về doanh thu từng năm
+    } catch (error) {
+      throw new Error("Error calculating yearly revenue");
+    }
+  };
 
 module.exports = {
     createOrder,
     getOrderDetails,
     getAllOrder,
-    updateStatusOrder
+    updateStatusOrder,
+    calculateTotalRevenue,
+    calculateMonthlyRevenue,
+    calculateYearlyRevenue
 }

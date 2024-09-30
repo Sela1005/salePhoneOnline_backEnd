@@ -11,4 +11,10 @@ router.get('/get-all-order',authMiddleware, OrderController.getAllOrder)
 
 router.put('/update/:id',authMiddleware, OrderController.updateOrder)
 
+router.get('/total-revenue', authMiddleware,OrderController.totalRevenue)
+
+router.get('/monthly-revenue/:year',authMiddleware, OrderController.monthlyRevenue); // Tính doanh thu theo tháng
+
+router.get('/yearly-revenue',authMiddleware, OrderController.yearlyRevenue); // Tính doanh thu theo năm
+
 module.exports = router
