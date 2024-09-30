@@ -7,6 +7,9 @@ const createUser = async (req, res) => {
         const reg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/
         const isCheckEmail = reg.test(email)
 
+        const passwordReg = /^(?=.*[A-Za-z]).{7,}$/;
+        const isCheckPass = passwordReg.test(password)
+
         if(!email|| !password|| !confirmPassword) {
             return res.status(200).json({
                 status: "ERR",
@@ -16,6 +19,12 @@ const createUser = async (req, res) => {
             return res.status(200).json({
                 status: "ERR",
                 message: "Hãy nhập email hợp lệ"
+            })
+        }
+        else if(!isCheckPass) {
+            return res.status(200).json({
+                status: "ERR",
+                message: "Mật khẩu ít nhất 6 ký tự và ít nhất 1 chữ"
             })
         }else if(password != confirmPassword) {
             return res.status(200).json({
