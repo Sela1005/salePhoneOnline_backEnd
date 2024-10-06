@@ -3,7 +3,7 @@ const JwtService = require('../services/JwtService')
 
 const createUser = async (req, res) => {
     try {
-        const {email, password, confirmPassword,phone} = req.body
+        const {email, password, confirmPassword} = req.body
         const reg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/
         const isCheckEmail = reg.test(email)
 

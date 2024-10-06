@@ -54,7 +54,7 @@ const createOrder = (newOrder) => {
             if(newData.length) {
                 resolve({
                     status: 'ERR',
-                    message: `San pham voi id${newData.join(',')} khong du sach`
+                    message: `San pham voi id${newData.join(',')} khong du`
                 })
             }
             resolve({
