@@ -6,7 +6,6 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser')
 const cors = require('cors');
 const { default: axios } = require("axios");
-const PaymentMOMO = express();
 
 
 
@@ -45,7 +44,7 @@ app.listen(port, () => {
     console.log('Server running on port:', + port)
 })
 
-PaymentMOMO.post("/payment", async (req, res) => {
+app.post("/payment", async (req, res) => {
     //https://developers.momo.vn/#/docs/en/aiov2/?id=payment-method
     //parameters
     var accessKey = 'F8BBA842ECF85';
@@ -122,7 +121,3 @@ PaymentMOMO.post("/payment", async (req, res) => {
     }
     
     })
-    
-    // PaymentMOMO.listen(5085, () => {
-    //     console.log("server run at port 5085"); 
-    // })
