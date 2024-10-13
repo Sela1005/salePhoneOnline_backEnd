@@ -164,6 +164,47 @@ const getDetailsUser = (id) => {
         }
     })
 }
+//Google
+const findOrCreateUser = async ({ email, name, picture }) => {
+    try {
+        // Kiểm tra xem người dùng đã tồn tại chưa
+        let user = await User.findOne({ email });
+
+        // Nếu người dùng chưa tồn tại, tạo mới
+        if (!user) {
+            user = await User.create({
+                name,
+                email,
+                password: bcrypt.hashSync(Date.now().toString(), 10), // Tạo password giả
+                avatar: picture,
+                isAdmin: false, // Có thể thay đổi theo yêu cầu
+            });
+        }
+
+        // Tạo access_token với _id của người dùng
+        const access_token = genneralAccessToken({
+            id: user._id, // Sử dụng _id của người dùng
+            isAdmin: user.isAdmin
+        });
+        const refresh_token = await genneralRefreshToken({
+            id: user._id,
+            isAdmin: user.isAdmin
+        })
+
+        // Nếu người dùng đã tồn tại, chỉ trả về thông tin người dùng cùng với access_token
+        return {
+            status: "OK",
+            message: "Login successful",
+            data: {
+                user,
+                access_token, // Trả về access_token
+                refresh_token
+            },
+        };
+    } catch (error) {
+        throw new Error("Error creating or finding user: " + error.message);
+    }
+};
 
 
 
@@ -173,5 +214,6 @@ module.exports = {
     updateUser,
     deleteUser,
     getAllUser,
-    getDetailsUser
+    getDetailsUser,
+    findOrCreateUser
 }

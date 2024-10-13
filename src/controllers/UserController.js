@@ -1,6 +1,6 @@
 const UserService = require('../services/UserService')
 const JwtService = require('../services/JwtService')
-
+const { OAuth2Client } = require('google-auth-library');
 const createUser = async (req, res) => {
     try {
         const {email, password, confirmPassword} = req.body
@@ -172,6 +172,42 @@ const logoutUser = async (req, res) => {
         })
     }
 }
+//Google
+
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID); // Lấy client ID từ biến môi trường
+
+const loginWithGoogle = async (req, res) => {
+    try {
+        const { idToken } = req.body; // Lấy idToken từ body
+        const ticket = await client.verifyIdToken({
+            idToken,
+            audience: process.env.GOOGLE_CLIENT_ID, // Chỉ định client ID
+        });
+
+        const payload = ticket.getPayload(); // Lấy thông tin payload từ token
+
+        // Kiểm tra và xử lý người dùng
+        const { email, name, picture } = payload; // Lấy thông tin email và name từ payload
+
+        // Gọi service để tìm hoặc tạo người dùng
+        const response = await UserService.findOrCreateUser({ email, name, picture }); 
+
+        // Giả sử UserService.findOrCreateUser trả về refresh_token
+        const { refresh_token } = response.data; 
+
+        // Lưu refresh_token vào cookie
+        res.cookie('refresh_token', refresh_token, {
+            httpOnly: true,
+            secure: false,
+            samesite: 'Strict'
+        })
+
+        return res.status(200).json(response); // Trả về phản hồi
+    } catch (error) {
+        return res.status(400).json({ status: "ERR", message: "Login failed", error: error.message });
+    }
+};
 
 
 
@@ -183,5 +219,6 @@ module.exports = {
     getAllUser,
     getDetailsUser,
     refreshToken,
-    logoutUser
+    logoutUser,
+    loginWithGoogle
 }
