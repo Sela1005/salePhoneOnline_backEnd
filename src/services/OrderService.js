@@ -4,7 +4,7 @@ const Product = require("../models/ProductModel")
 
 const createOrder = (newOrder) => {
     return new Promise(async(resolve, reject)=> {
-        const {orderItems, paymentMethod, itemsPrice, shippingPrice, fullName,address,city, phone,totalPrice,user} = newOrder
+        const {orderItems, paymentMethod, itemsPrice, shippingPrice, fullName,address,city, phone,totalPrice,user,discountCode,discountPercentage} = newOrder
         try{
              const promises = orderItems.map(async (order)=>{
                 const productData = await Product.findOneAndUpdate(
@@ -32,6 +32,8 @@ const createOrder = (newOrder) => {
                         paymentMethod,
                         itemsPrice,
                         shippingPrice,
+                        discountCode,
+                        discountPercentage,
                         totalPrice,
                         user: user,
                     })
