@@ -6,14 +6,15 @@ const accessKey = 'F8BBA842ECF85';
 const secretKey = 'K951B6PE1waDMi640xX08PD3vg6EkVlz';
 
 const createPaymentMomo = async (req, res) => {
+    const {amountReq, orderInfoReq } = req.body
     try {
         // Tham số thanh toán
-        const orderInfo = 'pay with MoMo';
+        const orderInfo = orderInfoReq;
         const partnerCode = 'MOMO';
-        const redirectUrl = 'https://webhook.site/b3088a6a-2d17-4f8d-a383-71389a6c600b';
+        const redirectUrl = 'http://localhost:5085/payment';
         const ipnUrl = 'https://1b9e-113-23-35-209.ngrok-free.app/callback';
         const requestType = "payWithMethod";
-        const amount = '50000';
+        const amount = amountReq;
         const orderId = partnerCode + new Date().getTime();
         const requestId = orderId;
         const extraData = '';
@@ -54,6 +55,7 @@ const createPaymentMomo = async (req, res) => {
             },
             data: requestBody
         };
+        console.log("requestBody",requestBody)
 
         // Gọi API MoMo
         const result = await axios(options);
