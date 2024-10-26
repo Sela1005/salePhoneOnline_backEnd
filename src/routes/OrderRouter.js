@@ -5,11 +5,15 @@ const {authUserMiddleware, authMiddleware} = require("../middleware/authMiddlewa
 
 router.post('/create', OrderController.createOrder)
 
-router.get('/get-order-details/:id',authUserMiddleware, OrderController.getDetailOrder)
+router.get('/get-order-details/:id', OrderController.getDetailOrder)
 
 router.get('/get-all-order',authMiddleware, OrderController.getAllOrder)
 
 router.put('/update/:id',authMiddleware, OrderController.updateOrder)
+
+router.get('/user/:id', authUserMiddleware,OrderController.getAllOrderByUser);
+
+router.put("/cancel/:id",authUserMiddleware, OrderController.cancelOrder);
 
 router.get('/total-revenue', authMiddleware,OrderController.totalRevenue)
 
