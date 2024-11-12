@@ -1,45 +1,63 @@
 const UserService = require('../services/UserService')
 const JwtService = require('../services/JwtService')
 const { OAuth2Client } = require('google-auth-library');
+
 const createUser = async (req, res) => {
     try {
-        const {email, password, confirmPassword} = req.body
-        const reg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/
-        const isCheckEmail = reg.test(email)
+        const { email, password, confirmPassword } = req.body;
 
-        const passwordReg = /^(?=.*[A-Za-z]).{7,}$/;
-        const isCheckPass = passwordReg.test(password)
+        // Kiểm tra email hợp lệ và có đuôi @gmail.com
+        const reg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+        const isCheckEmail = reg.test(email);
+        const isCheckGmail = email.endsWith('@gmail.com');  // Kiểm tra đuôi @gmail.com
 
-        if(!email|| !password|| !confirmPassword) {
+        // Kiểm tra mật khẩu có ít nhất 1 ký tự viết hoa và có độ dài từ 6 đến 16 ký tự
+        const passwordReg = /^(?=.*[A-Z]).{6,15}$/;  // ít nhất 1 ký tự viết hoa và từ 6 đến 16 ký tự
+        const isCheckPass = passwordReg.test(password);
+
+        if (!email || !password || !confirmPassword) {
             return res.status(200).json({
                 status: "ERR",
                 message: "Hãy nhập đầy đủ thông tin"
-            })
-        }else if(!isCheckEmail) {
+            });
+        } else if (!isCheckEmail || !isCheckGmail) {
             return res.status(200).json({
                 status: "ERR",
-                message: "Hãy nhập email hợp lệ"
-            })
-        }
-        else if(!isCheckPass) {
+                message: "Hãy nhập email hợp lệ và có đuôi @gmail.com"
+            });
+        } else if (!isCheckPass) {
             return res.status(200).json({
                 status: "ERR",
-                message: "Mật khẩu ít nhất 6 ký tự và ít nhất 1 chữ"
-            })
-        }else if(password != confirmPassword) {
+                message: "Mật khẩu phải có ít nhất 1 ký tự viết hoa và ít nhất 6 ký tự"
+            });
+        } else if (password !== confirmPassword) {
             return res.status(200).json({
                 status: "ERR",
                 message: "Hãy nhập mật khẩu và nhập lại mật khẩu trùng khớp"
-            })
+            });
         }
-        const response = await UserService.createUser(req.body)
-        return res.status(200).json(response)
-    } catch(e) {
+
+        // Kiểm tra nếu email đã có người đăng ký
+        const existingUser = await UserService.getUserByEmail(email);
+        if (existingUser) {
+            return res.status(200).json({
+                status: "ERR",
+                message: "Email này đã được đăng ký, vui lòng chọn email khác"
+            });
+        }
+
+        // Nếu tất cả kiểm tra đều hợp lệ, tiến hành tạo người dùng mới
+        const response = await UserService.createUser(req.body);
+        return res.status(200).json(response);
+    } catch (e) {
         return res.status(404).json({
             message: e
-        })
+        });
     }
-}
+};
+
+
+
 
 
 const loginUser = async (req, res) => {
@@ -205,7 +223,7 @@ const loginWithGoogle = async (req, res) => {
 
         return res.status(200).json(response); // Trả về phản hồi
     } catch (error) {
-        return res.status(400).json({ status: "ERR", message: "Login failed", error: error.message });
+        return res.status(400).json({ status: "ERR", message: "Đăng nhập không thành công!", error: error.message });
     }
 };
 

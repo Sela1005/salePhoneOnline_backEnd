@@ -3,64 +3,143 @@ const Product = require("../models/ProductModel")
 
 const createProduct = (newProduct) => {
     return new Promise( async (resolve, reject) => {
-        const {name, image, type, price, countInStock,rating,description} = newProduct
+        const {name, image, type, price, countInStock, rating, description} = newProduct;
+
         try {
-            const checkProduct = await Product.findOne({
-                name: name
-            })
-           if(checkProduct !== null) {
+            // Kiểm tra tên sản phẩm đã tồn tại
+            const checkProduct = await Product.findOne({ name: name });
+            if (checkProduct !== null) {
                 resolve({
                     status: "ERR",
                     message: "Tên sản phẩm đã tồn tại!"
-                })
-           }
-            const newProduct =await Product.create({
+                });
+                return;
+            }
+
+            // Kiểm tra các điều kiện
+            if (isNaN(price) || price <= 0) {
+                resolve({
+                    status: "ERR",
+                    message: "Giá sản phẩm phải là một số hợp lệ và lớn hơn 0."
+                });
+                return;
+            }
+
+            if (isNaN(countInStock) || countInStock < 0) {
+                resolve({
+                    status: "ERR",
+                    message: "Số lượng tồn kho phải là một số hợp lệ và không âm."
+                });
+                return;
+            }
+
+            if (isNaN(rating) || rating < 1 || rating > 5) {
+                resolve({
+                    status: "ERR",
+                    message: "Đánh giá phải là một số và trong khoảng từ 1 đến 5."
+                });
+                return;
+            }
+
+            if (description.length <= 20) {
+                resolve({
+                    status: "ERR",
+                    message: "Mô tả sản phẩm phải dài hơn 20 ký tự."
+                });
+                return;
+            }
+
+            // Tạo sản phẩm mới
+            const newProduct = await Product.create({
                 name, 
                 image, 
                 type, 
                 price, 
-                countInStock: Number(countInStock),
-                rating,
+                countInStock: Number(countInStock), 
+                rating, 
                 description,
-            })
-            if(newProduct){
+            });
+
+            // Kiểm tra nếu sản phẩm tạo thành công
+            if (newProduct) {
                 resolve({
                     status: "OK",
                     message: "SUCCESS",
                     data: newProduct
-                })
+                });
             }
         } catch (e) {
-            reject(e)
+            reject(e);
         }
-    })
-}
+    });
+};
 
-const updateProduct = (id,data) => {
-    return new Promise( async (resolve, reject) => {
+
+const updateProduct = (id, data) => {
+    return new Promise(async (resolve, reject) => {
         try {
-            const checkProduct = await Product.findOne({
-                _id: id
+            // Kiểm tra sản phẩm có tồn tại không
+            const checkProduct = await Product.findOne({ _id: id });
 
-            })
-           if(checkProduct == null) {
+            if (checkProduct == null) {
                 resolve({
-                    status: "OK",
-                    message: "The product is not defined"
-                })
-           }
+                    status: "ERR",
+                    message: "Sản phẩm không tồn tại."
+                });
+                return;
+            }
 
-           const updatedProduct = await Product.findByIdAndUpdate(id, data, {new: true})
+            // Kiểm tra các điều kiện dữ liệu
+            const { price, countInStock, rating, description } = data;
+
+            if (price !== undefined && (isNaN(price) || price <= 0)) {
+                resolve({
+                    status: "ERR",
+                    message: "Giá sản phẩm phải là một số hợp lệ và lớn hơn 0."
+                });
+                return;
+            }
+
+            if (countInStock !== undefined && (isNaN(countInStock) || countInStock < 0)) {
+                resolve({
+                    status: "ERR",
+                    message: "Số lượng tồn kho phải là một số hợp lệ và không âm."
+                });
+                return;
+            }
+
+            if (rating !== undefined && (isNaN(rating) || rating < 1 || rating > 5)) {
+                resolve({
+                    status: "ERR",
+                    message: "Đánh giá phải là một số và trong khoảng từ 1 đến 5."
+                });
+                return;
+            }
+
+            if (description !== undefined && description.length <= 20) {
+                resolve({
+                    status: "ERR",
+                    message: "Mô tả sản phẩm phải dài hơn 20 ký tự."
+                });
+                return;
+            }
+
+            // Tiến hành cập nhật sản phẩm
+            const updatedProduct = await Product.findByIdAndUpdate(id, data, { new: true });
+
             resolve({
                 status: "OK",
-                message: "SUCCESS",
+                message: "Cập nhật sản phẩm thành công.",
                 data: updatedProduct
-                })
+            });
+
         } catch (e) {
-            reject(e)
+            reject(e);
         }
-    })
-}
+    });
+};
+
+
 
 
 const deleteProduct = (id) => {
@@ -73,14 +152,14 @@ const deleteProduct = (id) => {
            if(checkProduct == null) {
                 resolve({
                     status: "OK",
-                    message: "The product is not defined"
+                    message: "Không tìm thấy sản phẩm"
                 })
            }
            
            await Product.findByIdAndDelete(id)
             resolve({
                 status: "OK",
-                message: "DELETE PRODUCT SUCCESS",
+                message: "Xóa sản phẩm thành công!",
                 })
         } catch (e) {
             reject(e)
@@ -95,7 +174,7 @@ const deleteManyProduct = (ids) => {
            await Product.deleteMany({_id: ids})
             resolve({
                 status: "OK",
-                message: "DELETE PRODUCT SUCCESS",
+                message: "Xóa sản phẩm thành công",
                 })
         } catch (e) {
             reject(e)
@@ -113,7 +192,7 @@ const getDetailProduct  = (id) => {
            if(product == null) {
                 resolve({
                     status: "OK",
-                    message: "The product is not defined"
+                    message: "Không tìm thấy sản phẩm"
                 })
            }
            

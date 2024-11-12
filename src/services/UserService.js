@@ -25,7 +25,7 @@ const createUser = (newUser) => {
             if(createUser){
                 resolve({
                     status: "OK",
-                    message: "SUCCESS",
+                    message: "Đăng ký thành công!",
                     data: createUser
                 })
             }
@@ -34,6 +34,13 @@ const createUser = (newUser) => {
         }
     })
 }
+const getUserByEmail = async (email) => {
+    try {
+        return await User.findOne({ email: email });
+    } catch (e) {
+        throw e;
+    }
+};
 
 const loginUser = (userLogin) => {
     return new Promise( async (resolve, reject) => {
@@ -66,7 +73,7 @@ const loginUser = (userLogin) => {
 
             resolve({
                 status: "OK",
-                message: "SUCCESS",
+                message: "Đăng nhập thành công",
                 access_token,
                 refresh_token
                 })
@@ -147,14 +154,14 @@ const deleteUser = (id) => {
            if(checkUser == null) {
                 resolve({
                     status: "OK",
-                    message: "The user is not defined"
+                    message: "Không tìm thấy người dùng!"
                 })
            }
            
            await User.findByIdAndDelete(id)
             resolve({
                 status: "OK",
-                message: "DELETE USER SUCCESS",
+                message: "Xóa người dùng thành công",
                 })
         } catch (e) {
             reject(e)
@@ -186,7 +193,7 @@ const getDetailsUser = (id) => {
            if(user == null) {
                 resolve({
                     status: "OK",
-                    message: "The user is not defined"
+                    message: "Không tìm thấy người dùng!"
                 })
            }
            
@@ -230,7 +237,7 @@ const findOrCreateUser = async ({ email, name, picture }) => {
         // Nếu người dùng đã tồn tại, chỉ trả về thông tin người dùng cùng với access_token
         return {
             status: "OK",
-            message: "Login successful",
+            message: "Đăng nhập thành công!",
             data: {
                 user,
                 access_token, // Trả về access_token
@@ -251,5 +258,6 @@ module.exports = {
     deleteUser,
     getAllUser,
     getDetailsUser,
-    findOrCreateUser
+    findOrCreateUser,
+    getUserByEmail
 }
