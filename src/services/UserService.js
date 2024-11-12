@@ -76,30 +76,66 @@ const loginUser = (userLogin) => {
     })
 }
 
-const updateUser = (id,data) => {
-    return new Promise( async (resolve, reject) => {
+const updateUser = (id, data) => {
+    return new Promise(async (resolve, reject) => {
         try {
-            const checkUser = await User.findOne({
-                _id: id
+            // Kiểm tra các điều kiện của từng trường dữ liệu
+            if (data.name && data.name.length > 25) {
+                return resolve({ status: "ERR", message: "Tên không được vượt quá 25 ký tự." });
+            }
 
-            })
-           if(checkUser == null) {
-                resolve({
-                    status: "OK",
-                    message: "The user is not defined"
-                })
-           }
-           const updatedUser = await User.findByIdAndUpdate(id, data, {new: true})
+            if (data.email && !data.email.endsWith("@gmail.com")) {
+                return resolve({ status: "ERR", message: "Email phải có đuôi @gmail.com." });
+            }
+
+            if (data.isAdmin !== undefined && typeof data.isAdmin !== "boolean") {
+                return resolve({ status: "ERR", message: "isAdmin phải là true hoặc false." });
+            }
+
+            if (data.phone) {
+                const phoneStr = data.phone.toString();
+                if (!/^\d+$/.test(phoneStr)) {
+                    return resolve({ status: "ERR", message: "Số điện thoại phải là số." });
+                }
+                if (phoneStr.length > 20 || phoneStr.length < 7) {
+                    return resolve({ status: "ERR", message: "Số điện thoại phải có từ 7 đến 20 số." });
+                }
+            }
+
+            if (data.address && data.address.length > 100) {
+                return resolve({ status: "ERR", message: "Địa chỉ không được vượt quá 100 ký tự." });
+            }
+
+            if (data.city && data.city.length > 100) {
+                return resolve({ status: "ERR", message: "Tên thành phố không được vượt quá 100 ký tự." });
+            }
+
+            if (data.role && data.role.length > 20) {
+                return resolve({ status: "ERR", message: "Vai trò không được vượt quá 20 ký tự." });
+            }
+
+            // Kiểm tra người dùng có tồn tại hay không
+            const checkUser = await User.findOne({ _id: id });
+            if (checkUser == null) {
+                return resolve({
+                    status: "ERR",
+                    message: "Người dùng không tồn tại",
+                });
+            }
+
+            // Cập nhật thông tin người dùng
+            const updatedUser = await User.findByIdAndUpdate(id, data, { new: true });
             resolve({
                 status: "OK",
-                message: "SUCCESS",
-                data: updatedUser
-                })
+                message: "Cập nhật thành công",
+                data: updatedUser,
+            });
         } catch (e) {
-            reject(e)
+            reject(e);
         }
-    })
-}
+    });
+};
+
 
 const deleteUser = (id) => {
     return new Promise( async (resolve, reject) => {

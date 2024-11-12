@@ -24,13 +24,16 @@ const getAllDiscountCodes = async () => {
     throw { status: "ERR", message: e.message };
   }
 };
-
 // Xem chi tiết mã giảm giá
 const getDiscountCode = async (code) => {
   try {
     const discountCode = await DiscountCode.findOne({ code });
     if (!discountCode) {
       return { status: "ERR", message: "Mã giảm giá không tồn tại!" };
+    }
+    // Kiểm tra số lần sử dụng
+    if (discountCode.usedCount >= discountCode.maxUses) {
+      return { status: "ERR", message: "Mã giảm giá đã hết số lần sử dụng!" };
     }
     return { status: "OK", message: "Lấy mã giảm giá thành công!", data: discountCode };
   } catch (e) {

@@ -1,75 +1,80 @@
 
 const Order = require("../models/OrderProduct")
 const Product = require("../models/ProductModel")
-
 const createOrder = (newOrder) => {
-    return new Promise(async(resolve, reject)=> {
-        const {orderItems, paymentMethod, itemsPrice, shippingPrice, fullName,address,city, phone,totalPrice,user,discountCode,discountPercentage, isPaid, paidAt} = newOrder
-        try{
-             const promises = orderItems.map(async (order)=>{
-                const productData = await Product.findOneAndUpdate(
-                    {
-                    _id: order.product,
-                    countInStock:{$gte: order.amount}
-                    },
-                    {$inc: {
-                        countInStock: -order.amount,
-                        selled: +order.amount
-                    }},
-                    {
-                        new: true   
-                    }
-                )
-                if(productData){
-                    const createdOrder = await Order.create({
-                        orderItems,
-                        shippingAddress: {
-                            fullName,
-                            address,
-                            city,
-                            phone
-                        },
-                        paymentMethod,
-                        itemsPrice,
-                        shippingPrice,
-                        discountCode,
-                        discountPercentage,
-                        totalPrice,
-                        user: user,
-                        isPaid, paidAt
-                    })
-                    if(createdOrder){
-                        return{
-                            status: 'OK',
-                            message: 'SUCCESS',
-                        }
-                    }
-                }else {
-                    return{
-                        status: 'OK',
-                        message: 'ERR',
-                        id: order.product
-                    }
-                }
-            })
-            const results = await Promise.all(promises)
-            const newData =results && results.filter((item) => item.id)
-            if(newData.length) {
-                resolve({
-                    status: 'ERR',
-                    message: `San pham voi id${newData.join(',')} khong du`
-                })
+  return new Promise(async (resolve, reject) => {
+      const { orderItems, paymentMethod, itemsPrice, shippingPrice, fullName, address, city, phone, totalPrice, user, discountCode, discountPercentage, isPaid, paidAt } = newOrder;
+      
+      try {
+          // Kiểm tra và cập nhật số lượng cho từng sản phẩm trong orderItems
+          const updateResults = await Promise.all(orderItems.map(async (order) => {
+              const productData = await Product.findOneAndUpdate(
+                  {
+                      _id: order.product,
+                      countInStock: { $gte: order.amount }
+                  },
+                  {
+                      $inc: {
+                          countInStock: -order.amount,
+                          selled: +order.amount
+                      }
+                  },
+                  { new: true }
+              );
+
+              if (!productData) {
+                // Nếu một sản phẩm không đủ hàng, trả về id và tên của sản phẩm
+                const outOfStockProduct = await Product.findById(order.product).select('name');
+                return { status: 'ERR', id: order.product, name: outOfStockProduct?.name || 'Unknown' };
             }
-            resolve({
-                status: 'OK',
-                message: 'success'
-            })
-        }catch (e){
-            console.log('e', e)
-            reject(e)
-        }
-    })
-}
+
+              return { status: 'OK' };
+          }));
+
+          // Lọc ra các sản phẩm không đủ hàng
+          const insufficientStock = updateResults.filter(result => result.status === 'ERR');
+          if (insufficientStock.length > 0) {
+              return resolve({
+                  status: 'ERR',
+                  message: `Sản phẩm không đủ hàng: ${insufficientStock.map(item => item.name).join(', ')}`
+              });
+          }
+
+          // Chỉ tạo một bản ghi đơn hàng duy nhất sau khi kiểm tra kho hoàn tất
+          const createdOrder = await Order.create({
+              orderItems,
+              shippingAddress: {
+                  fullName,
+                  address,
+                  city,
+                  phone
+              },
+              paymentMethod,
+              itemsPrice,
+              shippingPrice,
+              discountCode,
+              discountPercentage,
+              totalPrice,
+              user,
+              isPaid,
+              paidAt
+          });
+
+          if (createdOrder) {
+              resolve({
+                  status: 'OK',
+                  message: 'SUCCESS',
+                  data: createdOrder
+              });
+          }
+
+      } catch (e) {
+          console.log('Error:', e);
+          reject(e);
+      }
+  });
+};
+
 
 
 const getOrderDetails  = (id) => {
@@ -140,7 +145,7 @@ const getAllOrdersByUser = (userId) => {
       try {
           const orders = await Order.find({
               user: userId
-          }).populate('orderItems.product', 'name price image') // Populate để lấy thông tin sản phẩm nếu cần
+          }).populate('orderItems.product')
           if (orders.length === 0) {
               resolve({
                   status: "OK",
