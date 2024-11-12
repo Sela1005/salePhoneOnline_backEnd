@@ -64,7 +64,7 @@ const createProduct = (newProduct) => {
             if (newProduct) {
                 resolve({
                     status: "OK",
-                    message: "SUCCESS",
+                    message: "Thêm sản phẩm thành công!",
                     data: newProduct
                 });
             }
