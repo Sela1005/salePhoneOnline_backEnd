@@ -4,16 +4,26 @@ const DiscountCode = require('../models/DiscountCodeModel');
 const createDiscountCode = async (newDiscountCode) => {
   try {
     const { code } = newDiscountCode;
+
+    // Kiểm tra nếu mã chứa khoảng trắng hoặc dấu (chỉ cho phép chữ cái và số)
+    const isValidCode = /^[a-zA-Z0-9]+$/.test(code);
+    if (!isValidCode) {
+      return { status: "ERR", message: "Mã giảm giá không được chứa dấu hoặc khoảng trắng!" };
+    }
+
+    // Kiểm tra nếu mã đã tồn tại
     const existingCode = await DiscountCode.findOne({ code });
     if (existingCode) {
       return { status: "ERR", message: "Mã giảm giá đã tồn tại!" };
     }
+
     const discountCode = await DiscountCode.create(newDiscountCode);
     return { status: "OK", message: "Tạo mã giảm giá thành công!", data: discountCode };
   } catch (e) {
     throw { status: "ERR", message: e.message };
   }
 };
+
 
 // Xem tất cả mã giảm giá
 const getAllDiscountCodes = async () => {

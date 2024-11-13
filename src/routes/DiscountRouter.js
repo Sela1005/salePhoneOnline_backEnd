@@ -3,7 +3,7 @@ const DiscountController = require('../controllers/DiscountController');
 const { authMiddleware } = require('../middleware/authMiddleware');
 const router = express.Router();
 
-router.post('/create',authMiddleware, DiscountController.createDiscountCode);
+router.post('/create', DiscountController.createDiscountCode);
 router.get('/get-all', DiscountController.getAllDiscountCodes);
 router.get('/get-detail/:code', DiscountController.getDiscountCode);
 router.put('/update/:code',authMiddleware, DiscountController.updateDiscountCode);

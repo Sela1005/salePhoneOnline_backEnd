@@ -110,15 +110,15 @@ const updateUser = (id, data) => {
             }
 
             if (data.address && data.address.length > 100) {
-                return resolve({ status: "ERR", message: "Địa chỉ không được vượt quá 100 ký tự." });
+                return resolve({ status: "ERR", message: "Địa chỉ quá dài." });
             }
 
             if (data.city && data.city.length > 100) {
-                return resolve({ status: "ERR", message: "Tên thành phố không được vượt quá 100 ký tự." });
+                return resolve({ status: "ERR", message: "Tên thành phố quá dài." });
             }
 
             if (data.role && data.role.length > 20) {
-                return resolve({ status: "ERR", message: "Vai trò không được vượt quá 20 ký tự." });
+                return resolve({ status: "ERR", message: "Vai trò quá dài." });
             }
 
             // Kiểm tra người dùng có tồn tại hay không
