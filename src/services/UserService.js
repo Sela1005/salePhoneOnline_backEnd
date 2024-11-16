@@ -95,8 +95,13 @@ const updateUser = (id, data) => {
                 return resolve({ status: "ERR", message: "Email phải có đuôi @gmail.com." });
             }
 
-            if (data.isAdmin !== undefined && typeof data.isAdmin !== "boolean") {
-                return resolve({ status: "ERR", message: "isAdmin phải là true hoặc false." });
+            if (data.isAdmin !== undefined) {
+                // Ép kiểu nếu là chuỗi "true" hoặc "false"
+                const isAdmin = (data.isAdmin === "true") || (data.isAdmin === "false") ? data.isAdmin === "true" : data.isAdmin;
+                
+                if (typeof isAdmin !== "boolean") {
+                    return resolve({ status: "ERR", message: "isAdmin phải là true hoặc false." });
+                }
             }
 
             if (data.phone) {
