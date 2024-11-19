@@ -2,11 +2,11 @@ const ProductService = require('../services/ProductService')
 
 const createProduct = async (req, res) => {
     try {
-        const {name, image, type, price, countInStock,rating,description} = req.body
-        if(!name|| !image|| !type|| !price|| !countInStock|| !rating) {
+        const {name, image, type, price, countInStock,description} = req.body
+        if(!name|| !image|| !type|| !price|| !countInStock||!description) {
             return res.status(200).json({
                 status: "ERR",
-                message: "The input is required"
+                message: "Vui lòng điền đầy đủ các trường"
             })
         }
 
@@ -26,7 +26,7 @@ const updateProduct = async (req, res) => {
         if(!productId){
             return res.status(200).json({
                 status: "ERR",
-                message: "The productId is required"
+                message: "Không tìm thấy id sản phẩm"
             })
         }
         const response = await ProductService.updateProduct(productId,data)
@@ -44,7 +44,7 @@ const getDetailProduct = async (req, res) => {
         if(!ProductId){
             return res.status(200).json({
                 status: "ERR",
-                message: "The ProductId is required"
+                message: "Không tìm thấy id sản phẩm"
             })
         }
         const response = await ProductService.getDetailProduct(ProductId)
@@ -63,7 +63,7 @@ const deleteProduct = async (req, res) => {
         if(!productId){
             return res.status(200).json({
                 status: "ERR",
-                message: "The productId is required"
+                message: "Không tìm thấy id sản phẩm"
             })
         }
         const response = await ProductService.deleteProduct(productId)
@@ -86,6 +86,35 @@ const getAllProduct = async (req, res) => {
         })
     }
 }
+const getProductsByPriceRange = async (req, res) => {
+    try {
+        // Lấy thông tin minPrice và maxPrice từ query
+        const { minPrice, maxPrice } = req.query;
+
+        // Kiểm tra xem minPrice và maxPrice có hợp lệ không
+        if (!minPrice || !maxPrice) {
+            return res.status(400).json({
+                status: "ERROR",
+                message: "Invalid price range. Please provide both minPrice and maxPrice."
+            });
+        }
+
+        // Gọi service để lấy dữ liệu
+        const response = await ProductService.getProductsByPriceRange(
+            Number(minPrice),
+            Number(maxPrice)
+        );
+
+        return res.status(200).json(response);
+
+    } catch (error) {
+        return res.status(500).json({
+            status: "ERROR",
+            message: error.message
+        });
+    }
+};
+
 const getAllType = async (req, res) => {
     try {
         const response = await ProductService.getAllType()
@@ -123,5 +152,6 @@ module.exports = {
     deleteProduct,
     getAllProduct,
     deleteMany,
-    getAllType
+    getAllType,
+    getProductsByPriceRange
 }

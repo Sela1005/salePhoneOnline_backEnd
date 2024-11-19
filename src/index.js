@@ -34,12 +34,19 @@ mongoose.connect(process.env.MONGO_DB)
     .catch((err) => {
         console.error('Database connection error:', err);
     });
+    // Middleware để log thời gian xử lý MongoDB
+const logQueryTime = (req, res, next) => {
+    console.time('MongoDB Query Time'); // Bắt đầu tính thời gian
+    res.on('finish', () => {
+        console.timeEnd('MongoDB Query Time'); // Kết thúc và log thời gian
+    });
+    next();
+};
+
+app.use(logQueryTime);
 
 // Khởi động server
 app.listen(port, () => {
     console.log('Server running on port:', port);
 });
 
-// Các biến khóa truy cập
-const accessKey = 'F8BBA842ECF85';
-const secretKey = 'K951B6PE1waDMi640xX08PD3vg6EkVlz';

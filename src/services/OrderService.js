@@ -103,7 +103,7 @@ const getOrderDetails  = (id) => {
 const getAllOrder = () => {
     return new Promise( async (resolve, reject) => {
         try {
-           const allOrder= await Order.find()
+          const allOrder = await Order.find().sort({ createdAt: -1 });
             resolve({
                 status: "OK",
                 message: "SUCCESS",
@@ -139,30 +139,32 @@ const updateStatusOrder = (id,data) => {
         }
     })
 }
-
 const getAllOrdersByUser = (userId) => {
   return new Promise(async (resolve, reject) => {
       try {
-          const orders = await Order.find({
-              user: userId
-          }).populate('orderItems.product')
+          // Sắp xếp đơn hàng theo 'createdAt', từ mới nhất đến cũ nhất (desc)
+          const orders = await Order.find({ user: userId })
+            .populate('orderItems.product')
+            .sort({ createdAt: -1 });  // Sắp xếp theo ngày giảm dần (mới nhất trước)
+
           if (orders.length === 0) {
               resolve({
                   status: "OK",
                   message: "No orders found for this user"
-              })
+              });
           } else {
               resolve({
                   status: "OK",
                   message: "SUCCESS",
                   data: orders
-              })
+              });
           }
       } catch (e) {
-          reject(e)
+          reject(e);
       }
-  })
+  });
 }
+
 
 // OrderService.js
 const cancelOrder = (orderId) => {

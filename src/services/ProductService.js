@@ -1,26 +1,39 @@
 const Product = require("../models/ProductModel")
 
-
 const createProduct = (newProduct) => {
-    return new Promise( async (resolve, reject) => {
-        const {name, image, type, price, countInStock, rating, description} = newProduct;
+    return new Promise(async (resolve, reject) => {
+        const {
+            name,
+            image,
+            type,
+            price,
+            countInStock,
+            rating,
+            description,
+            screenSize,
+            chipset,
+            ram,
+            storage,
+            battery,
+            screenResolution,
+        } = newProduct;
 
         try {
             // Kiểm tra tên sản phẩm đã tồn tại
-            const checkProduct = await Product.findOne({ name: name });
+            const checkProduct = await Product.findOne({ name });
             if (checkProduct !== null) {
                 resolve({
                     status: "ERR",
-                    message: "Tên sản phẩm đã tồn tại!"
+                    message: "Tên sản phẩm đã tồn tại!",
                 });
                 return;
             }
 
-            // Kiểm tra các điều kiện
+            // Kiểm tra các điều kiện cơ bản
             if (isNaN(price) || price <= 0) {
                 resolve({
                     status: "ERR",
-                    message: "Giá sản phẩm phải là một số hợp lệ và lớn hơn 0."
+                    message: "Giá sản phẩm phải là một số hợp lệ và lớn hơn 0.",
                 });
                 return;
             }
@@ -28,36 +41,34 @@ const createProduct = (newProduct) => {
             if (isNaN(countInStock) || countInStock < 0) {
                 resolve({
                     status: "ERR",
-                    message: "Số lượng tồn kho phải là một số hợp lệ và không âm."
+                    message: "Số lượng tồn kho phải là một số hợp lệ và không âm.",
                 });
                 return;
             }
 
-            if (isNaN(rating) || rating < 1 || rating > 5) {
+            if (description && description.length <= 20) {
                 resolve({
                     status: "ERR",
-                    message: "Đánh giá phải là một số và trong khoảng từ 1 đến 5."
+                    message: "Mô tả sản phẩm phải dài hơn 20 ký tự.",
                 });
                 return;
             }
 
-            if (description.length <= 20) {
-                resolve({
-                    status: "ERR",
-                    message: "Mô tả sản phẩm phải dài hơn 20 ký tự."
-                });
-                return;
-            }
-
-            // Tạo sản phẩm mới
+            // Tạo sản phẩm mới với các trường mới (không bắt buộc)
             const newProduct = await Product.create({
-                name, 
-                image, 
-                type, 
-                price, 
-                countInStock: Number(countInStock), 
-                rating, 
+                name,
+                image,
+                type,
+                price,
+                countInStock: Number(countInStock),
+                rating,
                 description,
+                screenSize,
+                chipset,
+                ram,
+                storage,
+                battery,
+                screenResolution,
             });
 
             // Kiểm tra nếu sản phẩm tạo thành công
@@ -65,7 +76,7 @@ const createProduct = (newProduct) => {
                 resolve({
                     status: "OK",
                     message: "Thêm sản phẩm thành công!",
-                    data: newProduct
+                    data: newProduct,
                 });
             }
         } catch (e) {
@@ -73,6 +84,7 @@ const createProduct = (newProduct) => {
         }
     });
 };
+
 
 
 const updateProduct = (id, data) => {
@@ -207,53 +219,6 @@ const getDetailProduct  = (id) => {
     })
 }
 
-
-// const getAllProduct = (limit, page, sort,filter) => {
-//     return new Promise( async (resolve, reject) => {
-//         try {
-//             const totalProduct = await Product.countDocuments()
-//             if(filter){
-//                 const label = filter[0];
-//                 const allObjectFilter= await Product.find({
-//                     [label]: {'$regex' : filter[1]}
-//                 }).limit(limit).skip(page * limit)
-//                 resolve({
-//                     status: "OK",
-//                     message: "SUCCESS",
-//                     data: allObjectFilter,      
-//                     total: totalProduct,
-//                     pageCurrent: Number(page + 1),
-//                     totalPage: Math.ceil(totalProduct / limit)
-//                     })
-//             }
-//             if(sort){
-//                 const objectSort = {}
-//                 objectSort[sort[1]] = sort[0]
-//                 const allProductSort= await Product.find().limit(limit).skip(page * limit).sort(objectSort)
-//                 resolve({
-//                     status: "OK",
-//                     message: "SUCCESS",
-//                     data: allProductSort,
-//                     total: totalProduct,
-//                     pageCurrent: Number(page + 1),
-//                     totalPage: Math.ceil(totalProduct / limit)
-//                     })
-//             }
-//            const allProduct= await Product.find().limit(limit).skip(page * limit)
-//             resolve({
-//                 status: "OK",
-//                 message: "SUCCESS",
-//                 data: allProduct,
-//                 total: totalProduct,
-//                 pageCurrent: Number(page + 1),
-//                 totalPage: Math.ceil(totalProduct / limit)
-//                 })
-//         } catch (e) {
-//             reject(e)
-//         }
-//     })
-// }
-
 const getAllProduct = (limit, page, sort, filter) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -302,6 +267,35 @@ const getAllProduct = (limit, page, sort, filter) => {
         }
     });
 };
+const getProductsByPriceRange = (minPrice, maxPrice) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            // Điều kiện lọc theo khoảng giá
+            const query = {
+                price: { $gte: minPrice, $lte: maxPrice }
+            };
+
+            // Lấy danh sách sản phẩm
+            const products = await Product.find(query);
+
+            resolve({
+                status: "OK",
+                message: "SUCCESS",
+                data: products,
+                total: products.length // Tổng số sản phẩm trả về
+            });
+
+        } catch (error) {
+            reject({
+                status: "ERROR",
+                message: error.message
+            });
+        }
+    });
+};
+
+
+
 
 
 
@@ -330,5 +324,6 @@ module.exports = {
     deleteProduct,
     getAllProduct,
     deleteManyProduct,
-    getAllType
+    getAllType,
+    getProductsByPriceRange
 }
