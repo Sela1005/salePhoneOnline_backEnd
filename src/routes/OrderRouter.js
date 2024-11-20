@@ -11,7 +11,7 @@ router.get('/get-all-order',authMiddleware, OrderController.getAllOrder)
 
 router.put('/update/:id',authMiddleware, OrderController.updateOrder)
 
-router.get('/user/:id', authUserMiddleware,OrderController.getAllOrderByUser);
+router.get('/user/:id', OrderController.getAllOrderByUser);
 
 router.put("/cancel/:id",authUserMiddleware, OrderController.cancelOrder);
 

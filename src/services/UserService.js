@@ -2,6 +2,7 @@ const User = require("../models/UserModel")
 const bcrypt = require("bcrypt")
 const { genneralAccessToken, genneralRefreshToken } = require("./JwtService")
 const { JsonWebTokenError } = require("jsonwebtoken")
+const Order = require("../models/OrderProduct")
 
 const createUser = (newUser) => {
     return new Promise( async (resolve, reject) => {
@@ -148,31 +149,33 @@ const updateUser = (id, data) => {
     });
 };
 
-
 const deleteUser = (id) => {
-    return new Promise( async (resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         try {
-            const checkUser = await User.findOne({
-                _id: id
-
-            })
-           if(checkUser == null) {
+            const checkUser = await User.findOne({ _id: id });
+            if (checkUser == null) {
                 resolve({
                     status: "OK",
-                    message: "Không tìm thấy người dùng!"
-                })
-           }
-           
-           await User.findByIdAndDelete(id)
+                    message: "Không tìm thấy người dùng!",
+                });
+            }
+
+            // Xóa tất cả các đơn hàng của người dùng trước khi xóa người dùng
+            await Order.deleteMany({ user: id });
+
+            // Xóa người dùng
+            await User.findByIdAndDelete(id);
+
             resolve({
                 status: "OK",
                 message: "Xóa người dùng thành công",
-                })
+            });
         } catch (e) {
-            reject(e)
+            reject(e);
         }
-    })
-}
+    });
+};
+
 
 const getAllUser = () => {
     return new Promise( async (resolve, reject) => {
