@@ -12,7 +12,7 @@ const app = express();
 const port = process.env.PORT || 5082;
 
 const corsOptions = {
-    origin: 'http://localhost:5085', // Thay đổi thành địa chỉ frontend của bạn
+    origin: 'http://localhost:5085', // địa chỉ frontEnd
     credentials: true, // Cho phép gửi cookie
 };
 
@@ -46,7 +46,7 @@ const logQueryTime = (req, res, next) => {
 app.use(logQueryTime);
 
 // Khởi động server
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
     console.log('Server running on port:', port);
 });
 
