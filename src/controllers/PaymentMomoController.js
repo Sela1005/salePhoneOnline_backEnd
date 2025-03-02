@@ -11,7 +11,7 @@ const createPaymentMomo = async (req, res) => {
         // Tham số thanh toán
         const orderInfo = orderInfoReq;
         const partnerCode = 'MOMO';
-        const redirectUrl = 'http://localhost:5085/payment';
+        const redirectUrl = 'https://frontend-salephones.vercel.app//payment';
         const ipnUrl = 'https://1b9e-113-23-35-209.ngrok-free.app/callback';
         const requestType = "payWithMethod";
         const amount = amountReq;
