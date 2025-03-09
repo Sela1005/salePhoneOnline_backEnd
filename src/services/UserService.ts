@@ -1,5 +1,5 @@
 import User from "../models/UserModel";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { genneralAccessToken, genneralRefreshToken } from "./JwtService";
 import { JsonWebTokenError } from "jsonwebtoken";
 import Order from "../models/UserModel";
