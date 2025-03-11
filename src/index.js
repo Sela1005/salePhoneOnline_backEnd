@@ -14,9 +14,11 @@ const port = process.env.PORT || 5082;
 const corsOptions = {
     origin: [
         process.env.FRONTEND_URL, 
+        'http://localhost:5085',
     ],
     credentials: true, // Cho phép gửi cookie
 };
+console.log("CORS Allowed Origins:", process.env.FRONTEND_URL);
 // origin: process.env.FRONTEND_URL || 'https://frontend-salephones.vercel.app', // địa chỉ frontEnd
 
 // Sử dụng middleware
