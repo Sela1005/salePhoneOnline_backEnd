@@ -14,7 +14,6 @@ const port = process.env.PORT || 5082;
 const corsOptions = {
     origin: [
         process.env.FRONTEND_URL, 
-        'http://localhost:5085',
     ],
     credentials: true, // Cho phép gửi cookie
 };
