@@ -1,15 +1,23 @@
 const express = require("express");
 const dotenv = require('dotenv');
-const mongoose = require("mongoose");
 const routes = require('./routes');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const Database = require('./models/Database');
+const Database2 = require('./models/Database');
+
 
 dotenv.config();
 
+// Kết nối database
+Database.getInstance();
+
+//dù có getInstance lần nữa thì cũng chỉ 1 lần kết nối vì cơ chế cache của nodejs có sẵn
+Database2.getInstance();
+
 const app = express();
-const port = process.env.PORT || 5082;
+const port = process.env.PORT;
 
 const corsOptions = {
     origin: [
@@ -17,7 +25,6 @@ const corsOptions = {
     ],
     credentials: true, // Cho phép gửi cookie
 };
-// origin: process.env.FRONTEND_URL || 'https://frontend-salephones.vercel.app', // địa chỉ frontEnd
 
 // Sử dụng middleware
 app.use(cors(corsOptions));
@@ -28,25 +35,6 @@ app.use(cookieParser());
 
 // Kết nối routes
 routes(app);
-
-// Kết nối đến MongoDB
-mongoose.connect(process.env.MONGO_DB)
-    .then(() => { 
-        console.log('Connect DB Success!');
-    })
-    .catch((err) => {
-        console.error('Database connection error:', err);
-    });
-    // Middleware để log thời gian xử lý MongoDB
-const logQueryTime = (req, res, next) => {
-    console.time('MongoDB Query Time'); // Bắt đầu tính thời gian
-    res.on('finish', () => {
-        console.timeEnd('MongoDB Query Time'); // Kết thúc và log thời gian
-    });
-    next();
-};
-
-app.use(logQueryTime);
 
 // Khởi động server
 app.listen(port, '0.0.0.0', () => {
