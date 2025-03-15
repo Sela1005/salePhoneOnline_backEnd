@@ -1,4 +1,7 @@
 const Product = require("../models/ProductModel")
+const ProductRepository = require("../repository/ProductRepository");
+const productRepository = new ProductRepository(Product);
+
 
 const createProduct = (newProduct) => {
     return new Promise(async (resolve, reject) => {
@@ -20,7 +23,7 @@ const createProduct = (newProduct) => {
 
         try {
             // Kiểm tra tên sản phẩm đã tồn tại
-            const checkProduct = await Product.findOne({ name });
+            const checkProduct = await productRepository.findByName(name);
             if (checkProduct !== null) {
                 resolve({
                     status: "ERR",
@@ -54,8 +57,8 @@ const createProduct = (newProduct) => {
                 return;
             }
 
-            // Tạo sản phẩm mới với các trường mới (không bắt buộc)
-            const newProduct = await Product.create({
+            // Tạo sản phẩm mới
+            const createdProduct = await productRepository.create({
                 name,
                 image,
                 type,
@@ -71,12 +74,11 @@ const createProduct = (newProduct) => {
                 screenResolution,
             });
 
-            // Kiểm tra nếu sản phẩm tạo thành công
-            if (newProduct) {
+            if (createdProduct) {
                 resolve({
                     status: "OK",
                     message: "Thêm sản phẩm thành công!",
-                    data: newProduct,
+                    data: createdProduct,
                 });
             }
         } catch (e) {
@@ -85,18 +87,15 @@ const createProduct = (newProduct) => {
     });
 };
 
-
-
 const updateProduct = (id, data) => {
     return new Promise(async (resolve, reject) => {
         try {
             // Kiểm tra sản phẩm có tồn tại không
-            const checkProduct = await Product.findOne({ _id: id });
-
-            if (checkProduct == null) {
+            const checkProduct = await productRepository.findById(id);
+            if (!checkProduct) {
                 resolve({
                     status: "ERR",
-                    message: "Sản phẩm không tồn tại."
+                    message: "Sản phẩm không tồn tại.",
                 });
                 return;
             }
@@ -107,7 +106,7 @@ const updateProduct = (id, data) => {
             if (price !== undefined && (isNaN(price) || price <= 0)) {
                 resolve({
                     status: "ERR",
-                    message: "Giá sản phẩm phải là một số hợp lệ và lớn hơn 0."
+                    message: "Giá sản phẩm phải là một số hợp lệ và lớn hơn 0.",
                 });
                 return;
             }
@@ -115,7 +114,7 @@ const updateProduct = (id, data) => {
             if (countInStock !== undefined && (isNaN(countInStock) || countInStock < 0)) {
                 resolve({
                     status: "ERR",
-                    message: "Số lượng tồn kho phải là một số hợp lệ và không âm."
+                    message: "Số lượng tồn kho phải là một số hợp lệ và không âm.",
                 });
                 return;
             }
@@ -123,7 +122,7 @@ const updateProduct = (id, data) => {
             if (rating !== undefined && (isNaN(rating) || rating < 1 || rating > 5)) {
                 resolve({
                     status: "ERR",
-                    message: "Đánh giá phải là một số và trong khoảng từ 1 đến 5."
+                    message: "Đánh giá phải là một số và trong khoảng từ 1 đến 5.",
                 });
                 return;
             }
@@ -131,100 +130,87 @@ const updateProduct = (id, data) => {
             if (description !== undefined && description.length <= 20) {
                 resolve({
                     status: "ERR",
-                    message: "Mô tả sản phẩm phải dài hơn 20 ký tự."
+                    message: "Mô tả sản phẩm phải dài hơn 20 ký tự.",
                 });
                 return;
             }
 
-            // Tiến hành cập nhật sản phẩm
-            const updatedProduct = await Product.findByIdAndUpdate(id, data, { new: true });
-
+            // Cập nhật sản phẩm
+            const updatedProduct = await productRepository.update(id, data);
             resolve({
                 status: "OK",
                 message: "Cập nhật sản phẩm thành công.",
-                data: updatedProduct
+                data: updatedProduct,
             });
-
         } catch (e) {
             reject(e);
         }
     });
 };
 
-
-
-
 const deleteProduct = (id) => {
-    return new Promise( async (resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         try {
-            const checkProduct = await Product.findOne({
-                _id: id
-
-            })
-           if(checkProduct == null) {
+            const checkProduct = await productRepository.findById(id);
+            if (!checkProduct) {
                 resolve({
                     status: "OK",
-                    message: "Không tìm thấy sản phẩm"
-                })
-           }
-           
-           await Product.findByIdAndDelete(id)
+                    message: "Không tìm thấy sản phẩm",
+                });
+                return;
+            }
+
+            await productRepository.delete(id);
             resolve({
                 status: "OK",
                 message: "Xóa sản phẩm thành công!",
-                })
+            });
         } catch (e) {
-            reject(e)
+            reject(e);
         }
-    })
-}
+    });
+};
 
 const deleteManyProduct = (ids) => {
-    return new Promise( async (resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         try {
-           
-           await Product.deleteMany({_id: ids})
+            await productRepository.deleteMany(ids);
             resolve({
                 status: "OK",
                 message: "Xóa sản phẩm thành công",
-                })
+            });
         } catch (e) {
-            reject(e)
+            reject(e);
         }
-    })
-}
+    });
+};
 
-const getDetailProduct  = (id) => {
-    return new Promise( async (resolve, reject) => {
+const getDetailProduct = (id) => {
+    return new Promise(async (resolve, reject) => {
         try {
-            const product = await Product.findOne({
-                _id: id
-
-            })
-           if(product == null) {
+            const product = await productRepository.findById(id);
+            if (!product) {
                 resolve({
                     status: "OK",
-                    message: "Không tìm thấy sản phẩm"
-                })
-           }
-           
+                    message: "Không tìm thấy sản phẩm",
+                });
+                return;
+            }
+
             resolve({
                 status: "OK",
                 message: "SUCCESS",
-                data: product
-                })
+                data: product,
+            });
         } catch (e) {
-            reject(e)
+            reject(e);
         }
-    })
-}
+    });
+};
 
 const getAllProduct = (limit, page, sort, filter) => {
     return new Promise(async (resolve, reject) => {
         try {
-            const totalProduct = await Product.countDocuments();
-            
-            // Khởi tạo truy vấn cơ bản
             let query = {};
             let sortObject = {};
 
@@ -232,26 +218,27 @@ const getAllProduct = (limit, page, sort, filter) => {
             if (filter && Array.isArray(filter) && filter.length >= 2) {
                 const label = filter[0];
                 const value = filter[1];
-                
-                // Kiểm tra trường có trong mô hình hay không
                 if (Object.keys(Product.schema.paths).includes(label)) {
-                    query[label] = { '$regex': new RegExp(value, 'i') }; // Sử dụng regex không phân biệt chữ hoa chữ thường
+                    query[label] = { $regex: new RegExp(value, "i") };
                 }
             }
 
             // Xử lý sort nếu có
             if (sort) {
-                const [field, order] = sort.split(','); // Tách field và order từ sort query
+                const [field, order] = sort.split(",");
                 if (Object.keys(Product.schema.paths).includes(field)) {
-                    sortObject[field] = order === 'asc' ? 1 : -1; // 'asc' thành 1, 'desc' thành -1
+                    sortObject[field] = order === "asc" ? 1 : -1;
                 }
             }
 
-            // Lấy dữ liệu sản phẩm với các tùy chọn limit, skip, sort và filter
-            const allProducts = await Product.find(query)
-                .limit(limit)
-                .skip(page * limit)
-                .sort(sortObject);
+            const skip = page * limit;
+            const allProducts = await productRepository.findWithFiltersAndPagination(
+                query,
+                limit,
+                skip,
+                sortObject
+            );
+            const totalProduct = await productRepository.countDocuments(query);
 
             resolve({
                 status: "OK",
@@ -259,63 +246,47 @@ const getAllProduct = (limit, page, sort, filter) => {
                 data: allProducts,
                 total: totalProduct,
                 pageCurrent: Number(page) + 1,
-                totalPage: Math.ceil(totalProduct / limit)
+                totalPage: Math.ceil(totalProduct / limit),
             });
-
         } catch (e) {
             reject(e);
         }
     });
 };
+
 const getProductsByPriceRange = (minPrice, maxPrice) => {
     return new Promise(async (resolve, reject) => {
         try {
-            // Điều kiện lọc theo khoảng giá
-            const query = {
-                price: { $gte: minPrice, $lte: maxPrice }
-            };
-
-            // Lấy danh sách sản phẩm
-            const products = await Product.find(query);
-
+            const products = await productRepository.findByPriceRange(minPrice, maxPrice);
             resolve({
                 status: "OK",
                 message: "SUCCESS",
                 data: products,
-                total: products.length // Tổng số sản phẩm trả về
+                total: products.length,
             });
-
-        } catch (error) {
+        } catch (e) {
             reject({
                 status: "ERROR",
-                message: error.message
+                message: e.message,
             });
         }
     });
 };
 
-
-
-
-
-
 const getAllType = () => {
-    return new Promise( async (resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         try {
-
-           const allType = await Product.distinct('type')
+            const allType = await productRepository.getAllTypes();
             resolve({
                 status: "OK",
                 message: "SUCCESS",
                 data: allType,
-                })
+            });
         } catch (e) {
-            reject(e)
+            reject(e);
         }
-    })
-}
-
-
+    });
+};
 
 module.exports = {
     createProduct,
@@ -325,5 +296,5 @@ module.exports = {
     getAllProduct,
     deleteManyProduct,
     getAllType,
-    getProductsByPriceRange
-}
+    getProductsByPriceRange,
+};
