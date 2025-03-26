@@ -1,69 +1,43 @@
 const UserService = require('../services/UserService')
 const JwtService = require('../services/JwtService')
+const UserBuilder = require('../designPatterns/UserBuilder');
 const { OAuth2Client } = require('google-auth-library');
 
 const createUser = async (req, res) => {
     try {
-        const { email, password, confirmPassword } = req.body;
+        const { email, password, confirmPassword, address, phone, role, city, avatar, name } = req.body;
 
-        // Kiểm tra email hợp lệ và có đuôi @gmail.com
-        const reg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
-        const isCheckEmail = reg.test(email);
-        const isCheckGmail = email.endsWith('@gmail.com');  // Kiểm tra đuôi @gmail.com
+        // Sử dụng UserBuilder để tạo người dùng mới
+        const userBuilder = new UserBuilder()
+            .setEmail(email)
+            .setPassword(password)
+            .setConfirmPassword(confirmPassword)
+            .setAddress(address)
+            .setPhone(phone)
+            .setRole(role)
+            .setCity(city)
+            .setAvatar(avatar)
+            .setName(name);
 
-        // Kiểm tra mật khẩu có ít nhất 1 ký tự viết hoa và có độ dài từ 6 đến 16 ký tự
-        const passwordReg = /^(?=.*[A-Z]).{6,15}$/;  // ít nhất 1 ký tự viết hoa và từ 6 đến 16 ký tự
-        const isCheckPass = passwordReg.test(password);
-
-        if (!email || !password || !confirmPassword) {
-            return res.status(200).json({
-                status: "ERR",
-                message: "Hãy nhập đầy đủ thông tin"
-            });
-        } else if (!isCheckEmail || !isCheckGmail) {
-            return res.status(200).json({
-                status: "ERR",
-                message: "Hãy nhập email hợp lệ và có đuôi @gmail.com"
-            });
-        } else if (!isCheckPass) {
-            return res.status(200).json({
-                status: "ERR",
-                message: "Mật khẩu phải có ít nhất 1 ký tự viết hoa và ít nhất 6 ký tự"
-            });
-        } else if (password !== confirmPassword) {
-            return res.status(200).json({
-                status: "ERR",
-                message: "Hãy nhập mật khẩu và nhập lại mật khẩu trùng khớp"
-            });
-        }
+        // Tạo đối tượng người dùng từ UserBuilder
+        const newUser = userBuilder.build();
 
         // Kiểm tra nếu email đã có người đăng ký
-        const existingUser = await UserService.getUserByEmail(email);
+        const existingUser = await UserService.getUserByEmail(newUser.email);
         if (existingUser) {
             return res.status(200).json({
                 status: "ERR",
                 message: "Email này đã được đăng ký, vui lòng chọn email khác"
             });
         }
-          // Sử dụng UserBuilder để tạo người dùng mới
-          const userBuilder = new UserBuilder()
-          .setEmail(email)
-          .setPassword(password)
-          .setConfirmPassword(confirmPassword)
-          .setAddress(address)
-            .setPhone(phone)
-            .setRole(role)
-           // .setIsAdmin(isAdmin) // có thể tạo người dùng thành admin tức thì
-            .setCity(city)
-            .setAvatar(avatar)
-            .setName(name)
 
         // Nếu tất cả kiểm tra đều hợp lệ, tiến hành tạo người dùng mới
-        const response = await UserService.createUser(req.body);
+        const response = await UserService.createUser(newUser);
         return res.status(200).json(response);
     } catch (e) {
-        return res.status(404).json({
-            message: e
+        return res.status(400).json({
+            status: "Mẫu builder của Nguyên",
+            message: e.message   //trả về lỗi của user
         });
     }
 };

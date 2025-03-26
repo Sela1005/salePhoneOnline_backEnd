@@ -24,15 +24,16 @@ class UserBuilder {
         const reg = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
     
         if (!email || typeof email !== 'string') {
-            throw new Error("Email không hợp lệ");
+            throw new Error("Email không hợp lệ11111");
+            message: "Email không hợp lệ";
         }
     
         if (!reg.test(email)) {
-            throw new Error("Email sai định dạng");
+            throw new Error("Email sai định dạng1111");
         }
     
         if (!email.endsWith("@gmail.com")) {
-            throw new Error("Email phải có đuôi @gmail.com");
+            throw new Error("Email phải có đuôi @gmail.com111");
         }
     
         this.user.email = email.trim().toLowerCase(); // chuẩn hóa: xóa khoảng trắng, chữ thường

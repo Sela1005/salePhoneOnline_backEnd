@@ -24,7 +24,7 @@ const getDetailOrder = async (req, res) => {
     try {
         const orderId = req.params.id
         if(!orderId){
-            return res.status(200).json({
+            return res.status(200).jsnon({
                 status: "ERR",
                 message: "The orderId is required"
             })
