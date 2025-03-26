@@ -45,6 +45,18 @@ const createUser = async (req, res) => {
                 message: "Email này đã được đăng ký, vui lòng chọn email khác"
             });
         }
+          // Sử dụng UserBuilder để tạo người dùng mới
+          const userBuilder = new UserBuilder()
+          .setEmail(email)
+          .setPassword(password)
+          .setConfirmPassword(confirmPassword)
+          .setAddress(address)
+            .setPhone(phone)
+            .setRole(role)
+           // .setIsAdmin(isAdmin) // có thể tạo người dùng thành admin tức thì
+            .setCity(city)
+            .setAvatar(avatar)
+            .setName(name)
 
         // Nếu tất cả kiểm tra đều hợp lệ, tiến hành tạo người dùng mới
         const response = await UserService.createUser(req.body);
@@ -55,10 +67,6 @@ const createUser = async (req, res) => {
         });
     }
 };
-
-
-
-
 
 const loginUser = async (req, res) => {
     try {

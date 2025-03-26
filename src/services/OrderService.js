@@ -1,81 +1,76 @@
+const Order = require("../models/OrderProduct");
+const Product = require("../models/ProductModel");
+const OrderBuilder = require("../designPatterns\OrderBuilder");
 
-const Order = require("../models/OrderProduct")
-const Product = require("../models/ProductModel")
 const createOrder = (newOrder) => {
-  return new Promise(async (resolve, reject) => {
-      const { orderItems, paymentMethod, itemsPrice, shippingPrice, fullName, address, city, phone, totalPrice, user, discountCode, discountPercentage, isPaid, paidAt } = newOrder;
-      
-      try {
-          // Kiểm tra và cập nhật số lượng cho từng sản phẩm trong orderItems
-          const updateResults = await Promise.all(orderItems.map(async (order) => {
-              const productData = await Product.findOneAndUpdate(
-                  {
-                      _id: order.product,
-                      countInStock: { $gte: order.amount }
-                  },
-                  {
-                      $inc: {
-                          countInStock: -order.amount,
-                          selled: +order.amount
-                      }
-                  },
-                  { new: true }
-              );
+    return new Promise(async (resolve, reject) => {
+        const { orderItems, paymentMethod, itemsPrice, shippingPrice, fullName, address, city, phone, totalPrice, user, discountCode, discountPercentage, isPaid, paidAt } = newOrder;
 
-              if (!productData) {
-                // Nếu một sản phẩm không đủ hàng, trả về id và tên của sản phẩm
-                const outOfStockProduct = await Product.findById(order.product).select('name');
-                return { status: 'ERR', id: order.product, name: outOfStockProduct?.name || 'Unknown' };
+        try {
+            // Kiểm tra và cập nhật số lượng cho từng sản phẩm trong orderItems
+            const updateResults = await Promise.all(orderItems.map(async (order) => {
+                const productData = await Product.findOneAndUpdate(
+                    {
+                        _id: order.product,
+                        countInStock: { $gte: order.amount }
+                    },
+                    {
+                        $inc: {
+                            countInStock: -order.amount,
+                            selled: +order.amount
+                        }
+                    },
+                    { new: true }
+                );
+
+                if (!productData) {
+                    // Nếu một sản phẩm không đủ hàng, trả về id và tên của sản phẩm
+                    const outOfStockProduct = await Product.findById(order.product).select('name');
+                    return { status: 'ERR', id: order.product, name: outOfStockProduct?.name || 'Unknown' };
+                }
+
+                return { status: 'OK' };
+            }));
+
+            // Lọc ra các sản phẩm không đủ hàng
+            const insufficientStock = updateResults.filter(result => result.status === 'ERR');
+            if (insufficientStock.length > 0) {
+                return resolve({
+                    status: 'ERR',
+                    message: `Sản phẩm không đủ hàng: ${insufficientStock.map(item => item.name).join(', ')}`
+                });
             }
 
-              return { status: 'OK' };
-          }));
+            // Sử dụng OrderBuilder để tạo đơn hàng
+            const orderBuilder = new OrderBuilder()
+                .setOrderItems(orderItems)
+                .setShippingAddress(fullName, address, city, phone)
+                .setPaymentMethod(paymentMethod)
+                .setItemsPrice(itemsPrice)
+                .setShippingPrice(shippingPrice)
+                .setDiscountCode(discountCode)
+                .setDiscountPercentage(discountPercentage)
+                .setTotalPrice(totalPrice)
+                .setUser(user)
+                .setIsPaid(isPaid)
+                .setPaidAt(paidAt);
 
-          // Lọc ra các sản phẩm không đủ hàng
-          const insufficientStock = updateResults.filter(result => result.status === 'ERR');
-          if (insufficientStock.length > 0) {
-              return resolve({
-                  status: 'ERR',
-                  message: `Sản phẩm không đủ hàng: ${insufficientStock.map(item => item.name).join(', ')}`
-              });
-          }
+            const createdOrder = await Order.create(orderBuilder.build());
 
-          // Chỉ tạo một bản ghi đơn hàng duy nhất sau khi kiểm tra kho hoàn tất
-          const createdOrder = await Order.create({
-              orderItems,
-              shippingAddress: {
-                  fullName,
-                  address,
-                  city,
-                  phone
-              },
-              paymentMethod,
-              itemsPrice,
-              shippingPrice,
-              discountCode,
-              discountPercentage,
-              totalPrice,
-              user,
-              isPaid,
-              paidAt
-          });
+            if (createdOrder) {
+                resolve({
+                    status: 'OK',
+                    message: 'SUCCESS',
+                    data: createdOrder
+                });
+            }
 
-          if (createdOrder) {
-              resolve({
-                  status: 'OK',
-                  message: 'SUCCESS',
-                  data: createdOrder
-              });
-          }
-
-      } catch (e) {
-          console.log('Error:', e);
-          reject(e);
-      }
-  });
+        } catch (e) {
+            console.log('Error:', e);
+            reject(e);
+        }
+    });
 };
-
-
 
 const getOrderDetails  = (id) => {
     return new Promise( async (resolve, reject) => {
@@ -288,4 +283,4 @@ module.exports = {
     calculateYearlyRevenue,
     getAllOrdersByUser,
     cancelOrder
-}
+};

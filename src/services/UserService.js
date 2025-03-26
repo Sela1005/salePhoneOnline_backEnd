@@ -18,11 +18,14 @@ const createUser = (newUser) => {
                 })
            }
            const hash = bcrypt.hashSync(password, 10)
-            const createUser =await User.create({ //createdUser
-                name,
-                email, 
-                password: hash
-            })
+
+           
+            // Sử dụng UserBuilder để tạo đối tượng User
+            const userBuilder = new UserBuilder()
+                .setName(name)
+                .setEmail(email)
+                .setPassword(hash);
+            const createUser = await User.create(userBuilder.build());
             if(createUser){
                 resolve({
                     status: "OK",
