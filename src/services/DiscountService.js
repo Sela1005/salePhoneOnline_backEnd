@@ -3,7 +3,7 @@ const DiscountCode = require('../models/DiscountCodeModel');
 const discountCommandInvoker = require('../commands/discountCommandInvoker');
 const { ApplyDiscountCodeCommand } = require('../commands/discountCommands');
 
-// Thêm mã giảm giá (giữ nguyên)
+// Các hàm khác giữ nguyên
 const createDiscountCode = async (newDiscountCode) => {
     try {
         const { code } = newDiscountCode;
@@ -25,7 +25,6 @@ const createDiscountCode = async (newDiscountCode) => {
     }
 };
 
-// Các hàm khác giữ nguyên
 const getAllDiscountCodes = async () => {
     try {
         const discountCodes = await DiscountCode.find();
@@ -88,10 +87,13 @@ const deleteDiscountCode = async (code) => {
 };
 
 // Sử dụng mã giảm giá với Command
-const useDiscountCode = async ( code, totalAmount) => {
+const useDiscountCode = async (userId, code, totalAmount) => {
     try {
-        const command = new ApplyDiscountCodeCommand( code, totalAmount);
-        const result = await discountCommandInvoker.executeCommand(command);
+        const command = new ApplyDiscountCodeCommand(userId, code, totalAmount);
+        const result = await discountCommandInvoker.executeCommand(userId, command);
+        if (result?.status === "ERR") {
+            return result; // Trả về lỗi nếu có
+        }
         return { status: "OK", ...result };
     } catch (e) {
         throw { status: "ERR", message: e.message };
@@ -99,9 +101,12 @@ const useDiscountCode = async ( code, totalAmount) => {
 };
 
 // Hủy áp dụng mã giảm giá
-const undoDiscountCode = async () => {
+const undoDiscountCode = async (userId) => {
     try {
-        const result = await discountCommandInvoker.undoLastCommand();
+        const result = await discountCommandInvoker.undoLastCommand(userId);
+        if (result?.status === "ERR") {
+            return result; // Trả về lỗi nếu có
+        }
         return { status: "OK", ...result };
     } catch (e) {
         throw { status: "ERR", message: e.message };
@@ -109,9 +114,12 @@ const undoDiscountCode = async () => {
 };
 
 // Thực thi lại mã giảm giá
-const redoDiscountCode = async () => {
+const redoDiscountCode = async (userId) => {
     try {
-        const result = await discountCommandInvoker.redoLastCommand();
+        const result = await discountCommandInvoker.redoLastCommand(userId);
+        if (result?.status === "ERR") {
+            return result; // Trả về lỗi nếu có
+        }
         return { status: "OK", ...result };
     } catch (e) {
         throw { status: "ERR", message: e.message };

@@ -1,3 +1,4 @@
+// middleware/authMiddleware.js
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 dotenv.config();
@@ -5,7 +6,6 @@ dotenv.config();
 const authMiddleware = (req, res, next) => {
     const authHeader = req.headers.token;
 
-    // Kiểm tra xem header có tồn tại không và có đúng định dạng không
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({
             message: 'Authorization header is missing or invalid',
@@ -16,12 +16,13 @@ const authMiddleware = (req, res, next) => {
     const token = authHeader.split(' ')[1];
 
     jwt.verify(token, process.env.ACCESS_TOKEN, (err, user) => {
-        if (err || !user?.isAdmin) {
+        if (err) {
             return res.status(403).json({
-                message: 'Unauthorized: You do not have permission',
+                message: 'Invalid token',
                 status: 'ERROR',
             });
         }
+        req.user = user; // Gắn thông tin user (bao gồm userId) vào req
         next();
     });
 };
@@ -29,7 +30,6 @@ const authMiddleware = (req, res, next) => {
 const authUserMiddleware = (req, res, next) => {
     const authHeader = req.headers.token;
 
-    // Kiểm tra xem header có tồn tại không và có đúng định dạng không
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({
             message: 'Authorization header is missing or invalid',
@@ -47,6 +47,7 @@ const authUserMiddleware = (req, res, next) => {
                 status: 'ERROR',
             });
         }
+        req.user = user; // Gắn thông tin user vào req
         next();
     });
 };

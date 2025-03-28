@@ -53,8 +53,12 @@ const deleteDiscountCode = async (req, res) => {
 const useDiscountCode = async (req, res) => {
     try {
         const { code } = req.params;
-        const { totalAmount } = req.body; // Thêm totalAmount từ body
-        const response = await DiscountCodeService.useDiscountCode(code, totalAmount);
+        const { totalAmount } = req.body;
+        const userId = req.user?.id; // Lấy userId từ token qua authMiddleware
+        if (!userId) {
+            return res.status(401).json({ status: "ERR", message: "Không tìm thấy userId!" });
+        }
+        const response = await DiscountCodeService.useDiscountCode(userId, code, totalAmount);
         return res.status(200).json(response);
     } catch (e) {
         return res.status(500).json(e);
@@ -63,7 +67,11 @@ const useDiscountCode = async (req, res) => {
 
 const undoDiscountCode = async (req, res) => {
     try {
-        const response = await DiscountCodeService.undoDiscountCode();
+        const userId = req.user?.id; // Lấy userId từ token
+        if (!userId) {
+            return res.status(401).json({ status: "ERR", message: "Không tìm thấy userId!" });
+        }
+        const response = await DiscountCodeService.undoDiscountCode(userId);
         return res.status(200).json(response);
     } catch (e) {
         return res.status(500).json(e);
@@ -72,7 +80,11 @@ const undoDiscountCode = async (req, res) => {
 
 const redoDiscountCode = async (req, res) => {
     try {
-        const response = await DiscountCodeService.redoDiscountCode();
+        const userId = req.user?.id; // Lấy userId từ token
+        if (!userId) {
+            return res.status(401).json({ status: "ERR", message: "Không tìm thấy userId!" });
+        }
+        const response = await DiscountCodeService.redoDiscountCode(userId);
         return res.status(200).json(response);
     } catch (e) {
         return res.status(500).json(e);
