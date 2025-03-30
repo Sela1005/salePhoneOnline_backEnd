@@ -1,6 +1,7 @@
 const UserService = require('../services/UserService')
 const JwtService = require('../services/JwtService')
 const { OAuth2Client } = require('google-auth-library');
+const logger = require('../utils/logger'); // Thêm logger
 
 const createUser = async (req, res) => {
     try {
@@ -50,15 +51,12 @@ const createUser = async (req, res) => {
         const response = await UserService.createUser(req.body);
         return res.status(200).json(response);
     } catch (e) {
+        logger.error(`createUser error: ${e.message}`);  
         return res.status(404).json({
             message: e
         });
     }
 };
-
-
-
-
 
 const loginUser = async (req, res) => {
     try {
@@ -86,6 +84,7 @@ const loginUser = async (req, res) => {
         })
         return res.status(200).json(newRespone)
     } catch(e) {
+        logger.error(`loginUser error: ${e.message}`);  
         return res.status(404).json({
             message: e
         })
@@ -105,6 +104,7 @@ const updateUser = async (req, res) => {
         const response = await UserService.updateUser(userId,data)
         return res.status(200).json(response)
     } catch(e) {
+        logger.error(`updateUser error: ${e.message}`);  
         return res.status(404).json({
             message: e
         })
@@ -123,18 +123,19 @@ const deleteUser = async (req, res) => {
         const response = await UserService.deleteUser(userId)
         return res.status(200).json(response)
     } catch(e) {
+        logger.error(`deleteUser error: ${e.message}`);  
         return res.status(404).json({
             message: e
         })
     }
 }
 
-
 const getAllUser = async (req, res) => {
     try {
         const response = await UserService.getAllUser()
         return res.status(200).json(response)
     } catch(e) {
+        logger.error(`getAllUser error: ${e.message}`);  
         return res.status(404).json({
             message: e
         })
@@ -153,6 +154,7 @@ const getDetailsUser = async (req, res) => {
         const response = await UserService.getDetailsUser(userId)
         return res.status(200).json(response)
     } catch(e) {
+        logger.error(`getDetailsUser error: ${e.message}`);  
         return res.status(404).json({
             message: e
         })
@@ -171,6 +173,7 @@ const refreshToken = async (req, res) => {
         const response = await JwtService.refreshTokenJwtService(token)
         return res.status(200).json(response)
     } catch(e) {
+        logger.error(`refreshToken error: ${e.message}`);  
         return res.status(404).json({
             message: e
         })
@@ -185,13 +188,13 @@ const logoutUser = async (req, res) => {
             message: 'Logout Successfully'
         })
     } catch(e) {
+        logger.error(`logoutUser error: ${e.message}`);  
         return res.status(404).json({
             message: e
         })
     }
 }
 //Google
-
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID); // Lấy client ID từ biến môi trường
 
@@ -223,11 +226,10 @@ const loginWithGoogle = async (req, res) => {
 
         return res.status(200).json(response); // Trả về phản hồi
     } catch (error) {
+        logger.error(`loginWithGoogle error: ${error.message}`);  
         return res.status(400).json({ status: "ERR", message: "Đăng nhập không thành công!", error: error.message });
     }
 };
-
-
 
 module.exports = {
     createUser,

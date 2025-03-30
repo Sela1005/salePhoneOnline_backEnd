@@ -1,6 +1,7 @@
 
 const Order = require("../models/OrderProduct")
-const Product = require("../models/ProductModel")
+const Product = require("../models/ProductModel");
+const logger = require('../utils/logger');
 const createOrder = (newOrder) => {
   return new Promise(async (resolve, reject) => {
       const { orderItems, paymentMethod, itemsPrice, shippingPrice, fullName, address, city, phone, totalPrice, user, discountCode, discountPercentage, isPaid, paidAt } = newOrder;
@@ -69,7 +70,7 @@ const createOrder = (newOrder) => {
           }
 
       } catch (e) {
-          console.log('Error:', e);
+          logger.error(`Error creating order: ${e.message}`);
           reject(e);
       }
   });
