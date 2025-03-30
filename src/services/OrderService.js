@@ -4,7 +4,7 @@ const Product = require("../models/ProductModel")
 
 const createOrder = (newOder) => {
   return new Promise ( async (resolve, reject ) => {
-    try{
+    try{ 
       const result = await OrderFactory.createOrder(newOder);
       resolve(result);
     }catch(error)
