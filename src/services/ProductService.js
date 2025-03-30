@@ -1,27 +1,22 @@
 const Product = require("../models/ProductModel")
+const FactorySelector = require("../factories/FactorySelector");
 
-const createProduct = (newProduct) => {
+const createProduct = async (newProduct) => {
     return new Promise(async (resolve, reject) => {
-        const {
-            name,
-            image,
-            type,
-            price,
-            countInStock,
-            rating,
-            description,
-            screenSize,
-            chipset,
-            ram,
-            storage,
-            battery,
-            screenResolution,
-        } = newProduct;
-
         try {
-            // Kiểm tra tên sản phẩm đã tồn tại
-            const checkProduct = await Product.findOne({ name });
-            if (checkProduct !== null) {
+            const { name, image, type, price, countInStock, description } = newProduct;
+
+            if (!name || !image || !type || !price || !countInStock || !description) {
+                resolve({
+                    status: "ERR",
+                    message: "Vui lòng điền đầy đủ các trường",
+                });
+                return;
+            }
+
+            // Kiểm tra sản phẩm có tồn tại không
+            const existingProduct = await Product.findOne({ name });
+            if (existingProduct) {
                 resolve({
                     status: "ERR",
                     message: "Tên sản phẩm đã tồn tại!",
@@ -29,61 +24,107 @@ const createProduct = (newProduct) => {
                 return;
             }
 
-            // Kiểm tra các điều kiện cơ bản
-            if (isNaN(price) || price <= 0) {
-                resolve({
-                    status: "ERR",
-                    message: "Giá sản phẩm phải là một số hợp lệ và lớn hơn 0.",
-                });
-                return;
-            }
+            // Lấy Factory phù hợp
+            const factory = FactorySelector.getFactory(type);
+            const product = factory.createProduct(newProduct);
 
-            if (isNaN(countInStock) || countInStock < 0) {
-                resolve({
-                    status: "ERR",
-                    message: "Số lượng tồn kho phải là một số hợp lệ và không âm.",
-                });
-                return;
-            }
+            // Lưu vào database
+            const savedProduct = await product.save();
 
-            if (description && description.length <= 20) {
-                resolve({
-                    status: "ERR",
-                    message: "Mô tả sản phẩm phải dài hơn 20 ký tự.",
-                });
-                return;
-            }
-
-            // Tạo sản phẩm mới với các trường mới (không bắt buộc)
-            const newProduct = await Product.create({
-                name,
-                image,
-                type,
-                price,
-                countInStock: Number(countInStock),
-                rating,
-                description,
-                screenSize,
-                chipset,
-                ram,
-                storage,
-                battery,
-                screenResolution,
+            resolve({
+                status: "OK",
+                message: "Thêm sản phẩm thành công!",
+                data: savedProduct,
             });
-
-            // Kiểm tra nếu sản phẩm tạo thành công
-            if (newProduct) {
-                resolve({
-                    status: "OK",
-                    message: "Thêm sản phẩm thành công!",
-                    data: newProduct,
-                });
-            }
-        } catch (e) {
-            reject(e);
+        } catch (error) {
+            reject(error);
         }
     });
 };
+// const createProduct = (newProduct) => {
+//     return new Promise(async (resolve, reject) => {
+//         const {
+//             name,
+//             image,
+//             type,
+//             price,
+//             countInStock,
+//             rating,
+//             description,
+//             screenSize,
+//             chipset,
+//             ram,
+//             storage,
+//             battery,
+//             screenResolution,
+//         } = newProduct;
+
+//         try {
+//             // Kiểm tra tên sản phẩm đã tồn tại
+//             const checkProduct = await Product.findOne({ name });
+//             if (checkProduct !== null) {
+//                 resolve({
+//                     status: "ERR",
+//                     message: "Tên sản phẩm đã tồn tại!",
+//                 });
+//                 return;
+//             }
+
+//             // Kiểm tra các điều kiện cơ bản
+//             if (isNaN(price) || price <= 0) {
+//                 resolve({
+//                     status: "ERR",
+//                     message: "Giá sản phẩm phải là một số hợp lệ và lớn hơn 0.",
+//                 });
+//                 return;
+//             }
+
+//             if (isNaN(countInStock) || countInStock < 0) {
+//                 resolve({
+//                     status: "ERR",
+//                     message: "Số lượng tồn kho phải là một số hợp lệ và không âm.",
+//                 });
+//                 return;
+//             }
+
+//             if (description && description.length <= 20) {
+//                 resolve({
+//                     status: "ERR",
+//                     message: "Mô tả sản phẩm phải dài hơn 20 ký tự.",
+//                 });
+//                 return;
+//             }
+
+//             // Tạo sản phẩm mới với các trường mới (không bắt buộc)
+//             const newProduct = await Product.create({
+//                 name,
+//                 image,
+//                 type,
+//                 price,
+//                 countInStock: Number(countInStock),
+//                 rating,
+//                 description,
+//                 screenSize,
+//                 chipset,
+//                 ram,
+//                 storage,
+//                 battery,
+//                 screenResolution,
+//             });
+
+//             // Kiểm tra nếu sản phẩm tạo thành công
+//             if (newProduct) {
+//                 resolve({
+//                     status: "OK",
+//                     message: "Thêm sản phẩm thành công!",
+//                     data: newProduct,
+//                 });
+//             }
+//         } catch (e) {
+//             reject(e);
+//         }
+//     });
+// };
 
 
 

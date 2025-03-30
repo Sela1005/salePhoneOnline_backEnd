@@ -2,22 +2,35 @@ const ProductService = require('../services/ProductService')
 
 const createProduct = async (req, res) => {
     try {
-        const {name, image, type, price, countInStock,description} = req.body
-        if(!name|| !image|| !type|| !price|| !countInStock||!description) {
-            return res.status(200).json({
-                status: "ERR",
-                message: "Vui lòng điền đầy đủ các trường"
-            })
-        }
-
-        const response = await ProductService.createProduct(req.body)
-        return res.status(200).json(response)
-    } catch(e) {
-        return res.status(404).json({
-            message: e
-        })
+        const response = await ProductService.createProduct(req.body);
+        return res.status(200).json(response);
+    } catch (e) {
+        return res.status(500).json({
+            status: "ERROR",
+            message: e.message,
+        });
     }
-}
+};
+
+
+// const createProduct = async (req, res) => {
+//     try {
+//         const {name, image, type, price, countInStock,description} = req.body
+//         if(!name|| !image|| !type|| !price|| !countInStock||!description) {
+//             return res.status(200).json({
+//                 status: "ERR",
+//                 message: "Vui lòng điền đầy đủ các trường"
+//             })
+//         }
+
+//         const response = await ProductService.createProduct(req.body)
+//         return res.status(200).json(response)
+//     } catch(e) {
+//         return res.status(404).json({
+//             message: e
+//         })
+//     }
+// }
 
 const updateProduct = async (req, res) => {
     try {

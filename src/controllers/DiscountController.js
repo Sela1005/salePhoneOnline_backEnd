@@ -1,14 +1,23 @@
 const DiscountCodeService = require('../services/DiscountService');
+//const Factory = require('../Pattern/ConcreteFactory');
 
 // Thêm mã giảm giá
 const createDiscountCode = async (req, res) => {
   try {
-    const response = await DiscountCodeService.createDiscountCode(req.body);
-    return res.status(200).json(response);
+      const response = await Factory.createDiscountCode(req.body);
+      return res.status(200).json(response);
   } catch (e) {
-    return res.status(500).json(e);
+      return res.status(500).json(e);
   }
 };
+// const createDiscountCode = async (req, res) => {
+//   try {
+//     const response = await DiscountCodeService.createDiscountCode(req.body);
+//     return res.status(200).json(response);
+//   } catch (e) {
+//     return res.status(500).json(e);
+//   }
+// };
 
 // Xem tất cả mã giảm giá
 const getAllDiscountCodes = async (req, res) => {
