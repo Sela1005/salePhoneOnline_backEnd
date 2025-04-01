@@ -3,38 +3,40 @@ const bcrypt = require("bcryptjs")
 const { genneralAccessToken, genneralRefreshToken } = require("./JwtService")
 const { JsonWebTokenError } = require("jsonwebtoken")
 const Order = require("../models/OrderProduct")
+const { NhanVienIT, KeToan, ThuKho, QuanLy } = require("./UserTemplate")
 
-const createUser = (newUser) => {
-    return new Promise( async (resolve, reject) => {
-        const {name, email, password} = newUser
+const createUser = (newUser, role) => {
+    return new Promise(async (resolve, reject) => {
         try {
-            const checkUser = await User.findOne({
-                email: email
-            })
-           if(checkUser !== null) {
-                resolve({
-                    status: "ERR",
-                    message: "Email đã tồn tại!"
-                })
-           }
-           const hash = bcrypt.hashSync(password, 10)
-            const createUser =await User.create({ //createdUser
-                name,
-                email, 
-                password: hash
-            })
-            if(createUser){
-                resolve({
-                    status: "OK",
-                    message: "Đăng ký thành công!",
-                    data: createUser
-                })
+            let userCreator;
+
+            // Chọn lớp con dựa trên vai trò
+            switch (role) {
+                case "NhanVienIT":
+                    userCreator = new NhanVienIT();
+                    break;
+                case "KeToan":
+                    userCreator = new KeToan();
+                    break;
+                case "ThuKho":
+                    userCreator = new ThuKho();
+                    break;
+                case "QuanLy":
+                    userCreator = new QuanLy();
+                    break;
+                default:
+                    return resolve({ status: "ERR", message: "Vai trò không hợp lệ!" });
             }
+
+            // Gọi phương thức tạo người dùng
+            const response = await userCreator.createUser(newUser);
+            resolve(response);
         } catch (e) {
-            reject(e)
+            reject(e);
         }
-    })
-}
+    });
+};
+
 const getUserByEmail = async (email) => {
     try {
         return await User.findOne({ email: email });
@@ -44,20 +46,20 @@ const getUserByEmail = async (email) => {
 };
 
 const loginUser = (userLogin) => {
-    return new Promise( async (resolve, reject) => {
-        const {email, password} = userLogin
+    return new Promise(async (resolve, reject) => {
+        const { email, password } = userLogin
         try {
             const checkUser = await User.findOne({
                 email: email
             })
-           if(checkUser == null) {
+            if (checkUser == null) {
                 resolve({
                     status: "ERR",
                     message: "Không tìm thấy người dùng!"
                 })
-           }
-           const comparePassword = bcrypt.compareSync(password,checkUser.password)
-            if(!comparePassword){
+            }
+            const comparePassword = bcrypt.compareSync(password, checkUser.password)
+            if (!comparePassword) {
                 resolve({
                     status: "ERR",
                     message: "Email hoặc Mật khẩu sai!"
@@ -77,7 +79,7 @@ const loginUser = (userLogin) => {
                 message: "Đăng nhập thành công",
                 access_token,
                 refresh_token
-                })
+            })
         } catch (e) {
             reject(e)
         }
@@ -99,7 +101,7 @@ const updateUser = (id, data) => {
             if (data.isAdmin !== undefined) {
                 // Ép kiểu nếu là chuỗi "true" hoặc "false"
                 const isAdmin = (data.isAdmin === "true") || (data.isAdmin === "false") ? data.isAdmin === "true" : data.isAdmin;
-                
+
                 if (typeof isAdmin !== "boolean") {
                     return resolve({ status: "ERR", message: "isAdmin phải là true hoặc false." });
                 }
@@ -176,16 +178,15 @@ const deleteUser = (id) => {
     });
 };
 
-
 const getAllUser = () => {
-    return new Promise( async (resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         try {
-           const allUser= await User.find()
+            const allUser = await User.find()
             resolve({
                 status: "OK",
                 message: "SUCCESS",
                 data: allUser
-                })
+            })
         } catch (e) {
             reject(e)
         }
@@ -193,23 +194,23 @@ const getAllUser = () => {
 }
 
 const getDetailsUser = (id) => {
-    return new Promise( async (resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         try {
             const user = await User.findOne({
                 _id: id
             })
-           if(user == null) {
+            if (user == null) {
                 resolve({
                     status: "OK",
                     message: "Không tìm thấy người dùng!"
                 })
-           }
-           
+            }
+
             resolve({
                 status: "OK",
                 message: "SUCCESS",
                 data: user
-                })
+            })
         } catch (e) {
             reject(e)
         }
@@ -256,8 +257,6 @@ const findOrCreateUser = async ({ email, name, picture }) => {
         throw new Error("Error creating or finding user: " + error.message);
     }
 };
-
-
 
 module.exports = {
     createUser,

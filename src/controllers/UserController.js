@@ -4,7 +4,7 @@ const { OAuth2Client } = require('google-auth-library');
 
 const createUser = async (req, res) => {
     try {
-        const { email, password, confirmPassword } = req.body;
+        const { email, password, confirmPassword, role} = req.body;
 
         // Kiểm tra email hợp lệ và có đuôi @gmail.com
         const reg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
@@ -46,8 +46,8 @@ const createUser = async (req, res) => {
             });
         }
 
-        // Nếu tất cả kiểm tra đều hợp lệ, tiến hành tạo người dùng mới
-        const response = await UserService.createUser(req.body);
+        // Gọi service với vai trò cụ thể
+        const response = await UserService.createUser(req.body, role);
         return res.status(200).json(response);
     } catch (e) {
         return res.status(404).json({
@@ -55,10 +55,6 @@ const createUser = async (req, res) => {
         });
     }
 };
-
-
-
-
 
 const loginUser = async (req, res) => {
     try {
