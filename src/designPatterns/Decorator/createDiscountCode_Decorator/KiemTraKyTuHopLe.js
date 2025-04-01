@@ -1,3 +1,4 @@
+
 class KiemTraKyTuHopLe {
     constructor(baseService) {
         this.baseService = baseService; // Lớp cơ bản hoặc Decorator khác

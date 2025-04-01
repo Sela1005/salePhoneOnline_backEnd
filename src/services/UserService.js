@@ -3,41 +3,47 @@ const bcrypt = require("bcryptjs")
 const { genneralAccessToken, genneralRefreshToken } = require("./JwtService")
 const { JsonWebTokenError } = require("jsonwebtoken")
 const Order = require("../models/OrderProduct")
+const UserBuilder = require('../designPatterns/Builder/UserBuilder');
+const UserDirector = require('../designPatterns/Builder/Director/UserDirector');
 
 const createUser = (newUser) => {
-    return new Promise( async (resolve, reject) => {
-        const {name, email, password} = newUser
-        try {
-            const checkUser = await User.findOne({
-                email: email
-            })
-           if(checkUser !== null) {
-                resolve({
-                    status: "ERR",
-                    message: "Email đã tồn tại!"
-                })
-           }
-           const hash = bcrypt.hashSync(password, 10)
+    return new Promise(async (resolve, reject) => {
+        const { name, email, password } = newUser;
 
-           
-            // Sử dụng UserBuilder để tạo đối tượng User
-            const userBuilder = new UserBuilder()
-                .setName(name)
-                .setEmail(email)
-                .setPassword(hash);
-            const createUser = await User.create(userBuilder.build());
-            if(createUser){
+        try {
+            // Kiểm tra trùng email
+            const checkUser = await User.findOne({ email });
+            if (checkUser !== null) {
+                return resolve({
+                    status: "ERR_buider_Nguyen",
+                    message: "Email đã tồn tại!"
+                });
+            }
+
+            // Sử dụng UserDirector để xây dựng người dùng
+            const builder = new UserBuilder();
+            const director = new UserDirector(builder);
+            const builtUser = director.constructStandardUser(name, email, password);
+
+            // Hash mật khẩu
+            const hashedPassword = bcrypt.hashSync(builtUser.password, 10);
+            builtUser.password = hashedPassword;
+
+            // Lưu vào DB
+            const createdUser = await User.create(builtUser);
+
+            if (createdUser) {
                 resolve({
-                    status: "OK",
+                    status: "Nguyen_OK_Buider",
                     message: "Đăng ký thành công!",
-                    data: createUser
-                })
+                    data: createdUser
+                });
             }
         } catch (e) {
-            reject(e)
+            reject(e);
         }
-    })
-}
+    });
+};
 const getUserByEmail = async (email) => {
     try {
         return await User.findOne({ email: email });
@@ -218,21 +224,24 @@ const getDetailsUser = (id) => {
         }
     })
 }
-//Google
 const findOrCreateUser = async ({ email, name, picture }) => {
     try {
         // Kiểm tra xem người dùng đã tồn tại chưa
         let user = await User.findOne({ email });
 
-        // Nếu người dùng chưa tồn tại, tạo mới
+        // Nếu người dùng chưa tồn tại, sử dụng UserDirector để tạo mới
         if (!user) {
-            user = await User.create({
-                name,
-                email,
-                password: bcrypt.hashSync(Date.now().toString(), 10), // Tạo password giả
-                avatar: picture,
-                isAdmin: false, // Có thể thay đổi theo yêu cầu
-            });
+            const builder = new UserBuilder();
+            const director = new UserDirector(builder);
+
+            // Xây dựng người dùng từ Google
+            const newUser = director.constructGoogleUser({ name, email, picture });
+
+            // Hash mật khẩu giả
+            newUser.password = bcrypt.hashSync(newUser.password, 10);
+
+            // Lưu người dùng vào cơ sở dữ liệu
+            user = await User.create(newUser);
         }
 
         // Tạo access_token với _id của người dùng
@@ -243,9 +252,9 @@ const findOrCreateUser = async ({ email, name, picture }) => {
         const refresh_token = await genneralRefreshToken({
             id: user._id,
             isAdmin: user.isAdmin
-        })
+        });
 
-        // Nếu người dùng đã tồn tại, chỉ trả về thông tin người dùng cùng với access_token
+        // Trả về thông tin người dùng cùng với access_token
         return {
             status: "OK",
             message: "Đăng nhập thành công!",
