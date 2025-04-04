@@ -253,11 +253,71 @@ const findOrCreateUser = async ({ email, name, picture }) => {
             },
         };
     } catch (error) {
-        throw new Error("Error creating or finding user: " + error.message);
+        reject(error)
     }
 };
 
+const changePassword = (userId, oldPassword, newPassword) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const user = await User.findOne({ _id: userId })
+            if (!user) {
+                resolve({
+                    status: "ERR",
+                    message: "Không tìm thấy người dùng"
+                })
+            }
 
+            const isMatchPassword = bcrypt.compareSync(oldPassword, user.password)
+            if (!isMatchPassword) {
+                resolve({
+                    status: "ERR",
+                    message: "Mật khẩu cũ không đúng"
+                })
+            }
+
+            const hash = bcrypt.hashSync(newPassword, 10)
+            await User.findByIdAndUpdate(
+                userId,
+                { password: hash }
+            )
+
+            resolve({
+                status: "OK",
+                message: "Thay đổi mật khẩu thành công. Vui lòng đăng nhập lại!"
+            })
+        } catch (e) {
+            reject(e)
+        }
+    })
+}
+
+const adminChangePassword = (userId, newPassword) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const user = await User.findOne({ _id: userId })
+            if (!user) {
+                resolve({
+                    status: "ERR",
+                    message: "Không tìm thấy người dùng"
+                })
+            }
+
+            const hash = bcrypt.hashSync(newPassword, 10)
+            await User.findByIdAndUpdate(
+                userId,
+                { password: hash }
+            )
+
+            resolve({
+                status: "OK",
+                message: "Thay đổi mật khẩu thành công"
+            })
+        } catch (e) {
+            reject(e)
+        }
+    })
+}
 
 module.exports = {
     createUser,
@@ -267,5 +327,7 @@ module.exports = {
     getAllUser,
     getDetailsUser,
     findOrCreateUser,
-    getUserByEmail
+    getUserByEmail,
+    changePassword,
+    adminChangePassword
 }

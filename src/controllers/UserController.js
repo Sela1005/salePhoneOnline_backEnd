@@ -56,10 +56,6 @@ const createUser = async (req, res) => {
     }
 };
 
-
-
-
-
 const loginUser = async (req, res) => {
     try {
         const {email, password} = req.body
@@ -129,7 +125,6 @@ const deleteUser = async (req, res) => {
     }
 }
 
-
 const getAllUser = async (req, res) => {
     try {
         const response = await UserService.getAllUser()
@@ -192,7 +187,6 @@ const logoutUser = async (req, res) => {
 }
 //Google
 
-
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID); // Lấy client ID từ biến môi trường
 
 const loginWithGoogle = async (req, res) => {
@@ -227,7 +221,84 @@ const loginWithGoogle = async (req, res) => {
     }
 };
 
+const changePassword = async (req, res) => {
+    try {
+        const userId = req.params.id
+        const { oldPassword, newPassword, confirmNewPassword } = req.body
 
+        if (!oldPassword || !newPassword || !confirmNewPassword) {
+            return res.status(200).json({
+                status: "ERR",
+                message: "Vui lòng nhập đầy đủ thông tin"
+            })
+        }
+
+        const passwordReg = /^(?=.*[A-Z]).{6,15}$/
+        const isCheckPass = passwordReg.test(newPassword)
+
+        if (!isCheckPass) {
+            return res.status(200).json({
+                status: "ERR",
+                message: "Mật khẩu mới phải có ít nhất 1 ký tự viết hoa và từ 6 đến 15 ký tự"
+            })
+        }
+
+        if (newPassword !== confirmNewPassword) {
+            return res.status(200).json({
+                status: "ERR",
+                message: "Mật khẩu mới và xác nhận mật khẩu không khớp"
+            })
+        }
+
+        const response = await UserService.changePassword(userId, oldPassword, newPassword)
+        if (response.status === "OK") {
+            res.clearCookie('refresh_token')
+        }
+        return res.status(200).json(response)
+    } catch(e) {
+        return res.status(404).json({
+            message: e
+        })
+    }
+}
+
+const adminChangePassword = async (req, res) => {
+    try {
+        const userId = req.params.id
+        const { newPassword, confirmNewPassword } = req.body
+
+        if (!newPassword || !confirmNewPassword) {
+            return res.status(200).json({
+                status: "ERR",
+                message: "Vui lòng nhập đầy đủ thông tin"
+            })
+        }
+
+        const passwordReg = /^(?=.*[A-Z]).{6,15}$/
+        const isCheckPass = passwordReg.test(newPassword)
+
+        if (!isCheckPass) {
+            return res.status(200).json({
+                status: "ERR",
+                message: "Mật khẩu mới phải có ít nhất 1 ký tự viết hoa và từ 6 đến 15 ký tự"
+            })
+        }
+
+        if (newPassword !== confirmNewPassword) {
+            return res.status(200).json({
+                status: "ERR",
+                message: "Mật khẩu mới và xác nhận mật khẩu không khớp"
+            })
+        }
+
+        const response = await UserService.adminChangePassword(userId, newPassword)
+        return res.status(200).json(response)
+    } catch(e) {
+        return res.status(404).json({
+            message: e
+        })
+    }
+}
 
 module.exports = {
     createUser,
@@ -238,5 +309,7 @@ module.exports = {
     getDetailsUser,
     refreshToken,
     logoutUser,
-    loginWithGoogle
+    loginWithGoogle,
+    changePassword,
+    adminChangePassword
 }

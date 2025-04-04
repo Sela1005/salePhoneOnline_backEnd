@@ -13,6 +13,7 @@ router.get('/get-details/:id',authUserMiddleware, userController.getDetailsUser)
 router.post('/refresh-token', userController.refreshToken)
 //google
 router.post('/google-login', userController.loginWithGoogle)
-
+router.post('/change-password/:id', authUserMiddleware, userController.changePassword)
+router.post('/admin/change-password/:id', authMiddleware, userController.adminChangePassword)
 
 module.exports = router
