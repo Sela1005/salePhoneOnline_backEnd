@@ -87,26 +87,30 @@ const loginUser = (userLogin) => {
 const updateUser = (id, data) => {
     return new Promise(async (resolve, reject) => {
         try {
+            // Lọc chỉ các trường được phép cập nhật
+            const allowedFields = ['name', 'isAdmin', 'phone', 'address', 'avatar', 'city', 'role'];
+            const updateData = {};
+            Object.keys(data).forEach(key => {
+                if (allowedFields.includes(key)) {
+                    updateData[key] = data[key];
+                }
+            });
+
             // Kiểm tra các điều kiện của từng trường dữ liệu
-            if (data.name && data.name.length > 25) {
+            if (updateData.name && updateData.name.length > 25) {
                 return resolve({ status: "ERR", message: "Tên không được vượt quá 25 ký tự." });
             }
 
-            if (data.email && !data.email.endsWith("@gmail.com")) {
-                return resolve({ status: "ERR", message: "Email phải có đuôi @gmail.com." });
-            }
-
-            if (data.isAdmin !== undefined) {
-                // Ép kiểu nếu là chuỗi "true" hoặc "false"
-                const isAdmin = (data.isAdmin === "true") || (data.isAdmin === "false") ? data.isAdmin === "true" : data.isAdmin;
-                
+            if (updateData.isAdmin !== undefined) {
+                const isAdmin = (updateData.isAdmin === "true") || (updateData.isAdmin === "false") ? updateData.isAdmin === "true" : updateData.isAdmin;
                 if (typeof isAdmin !== "boolean") {
                     return resolve({ status: "ERR", message: "isAdmin phải là true hoặc false." });
                 }
+                updateData.isAdmin = isAdmin;
             }
 
-            if (data.phone) {
-                const phoneStr = data.phone.toString();
+            if (updateData.phone) {
+                const phoneStr = updateData.phone.toString();
                 if (!/^\d+$/.test(phoneStr)) {
                     return resolve({ status: "ERR", message: "Số điện thoại phải là số." });
                 }
@@ -115,19 +119,18 @@ const updateUser = (id, data) => {
                 }
             }
 
-            if (data.address && data.address.length > 100) {
+            if (updateData.address && updateData.address.length > 100) {
                 return resolve({ status: "ERR", message: "Địa chỉ quá dài." });
             }
 
-            if (data.city && data.city.length > 100) {
+            if (updateData.city && updateData.city.length > 100) {
                 return resolve({ status: "ERR", message: "Tên thành phố quá dài." });
             }
 
-            if (data.role && data.role.length > 20) {
+            if (updateData.role && updateData.role.length > 20) {
                 return resolve({ status: "ERR", message: "Vai trò quá dài." });
             }
 
-            // Kiểm tra người dùng có tồn tại hay không
             const checkUser = await User.findOne({ _id: id });
             if (checkUser == null) {
                 return resolve({
@@ -136,8 +139,7 @@ const updateUser = (id, data) => {
                 });
             }
 
-            // Cập nhật thông tin người dùng
-            const updatedUser = await User.findByIdAndUpdate(id, data, { new: true });
+            const updatedUser = await User.findByIdAndUpdate(id, updateData, { new: true });
             resolve({
                 status: "OK",
                 message: "Cập nhật thành công",
