@@ -13,7 +13,7 @@ router.put('/update/:id',authMiddleware, OrderController.updateOrder)
 
 router.get('/user/:id', OrderController.getAllOrderByUser);
 
-router.put("/cancel/:id",authUserMiddleware, OrderController.cancelOrder);
+router.put("/cancel/:id", OrderController.cancelOrder);
 
 router.get('/total-revenue', authMiddleware,OrderController.totalRevenue)
 
