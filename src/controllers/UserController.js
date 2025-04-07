@@ -299,6 +299,29 @@ const adminChangePassword = async (req, res) => {
         })
     }
 }
+const deleteOwnAccount = async (req, res) => {
+    try {
+        const userId = req.params.id; // Lấy từ middleware xác thực JWT
+        const { password } = req.body;
+
+        if (!password) {
+            return res.status(400).json({
+                status: "ERR",
+                message: "Vui lòng nhập mật khẩu để xác nhận xoá tài khoản"
+            });
+        }
+
+        const response = await UserService.deleteOwnAccount(userId, password);
+        return res.status(200).json(response);
+    } catch (error) {
+        return res.status(500).json({
+            status: "ERR",
+            message: "Lỗi hệ thống",
+            error: error.message
+        });
+    }
+};
+
 
 module.exports = {
     createUser,
@@ -311,5 +334,6 @@ module.exports = {
     logoutUser,
     loginWithGoogle,
     changePassword,
-    adminChangePassword
+    adminChangePassword,
+    deleteOwnAccount
 }

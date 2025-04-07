@@ -15,5 +15,6 @@ router.post('/refresh-token', userController.refreshToken)
 router.post('/google-login', userController.loginWithGoogle)
 router.post('/change-password/:id', authUserMiddleware, userController.changePassword)
 router.post('/admin/change-password/:id', authMiddleware, userController.adminChangePassword)
+router.delete('/me/delete/:id', authUserMiddleware, userController.deleteOwnAccount);
 
 module.exports = router

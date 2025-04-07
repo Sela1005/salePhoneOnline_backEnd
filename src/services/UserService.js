@@ -320,6 +320,38 @@ const adminChangePassword = (userId, newPassword) => {
         }
     })
 }
+const deleteOwnAccount = (userId, password) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const user = await User.findById(userId);
+            if (!user) {
+                return resolve({
+                    status: "ERR",
+                    message: "Người dùng không tồn tại"
+                });
+            }
+
+            const isMatch = bcrypt.compareSync(password, user.password);
+            if (!isMatch) {
+                return resolve({
+                    status: "ERR",
+                    message: "Mật khẩu không chính xác"
+                });
+            }
+
+            await Order.deleteMany({ user: userId });
+            await User.findByIdAndDelete(userId);
+
+            resolve({
+                status: "OK",
+                message: "Tài khoản đã được xoá thành công"
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
+};
+
 
 module.exports = {
     createUser,
@@ -331,5 +363,6 @@ module.exports = {
     findOrCreateUser,
     getUserByEmail,
     changePassword,
-    adminChangePassword
+    adminChangePassword,
+    deleteOwnAccount
 }
